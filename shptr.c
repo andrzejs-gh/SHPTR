@@ -21,19 +21,19 @@
 #define STRONG 's'
 #define WEAK 'w'
 
-typedef void (*deleter)(void*);
+typedef void (* _Atomic atomic_fptr)(void*);
 typedef void* _Atomic atomic_ptr;
 
 typedef struct
 {
     atomic_size_t strong_refcount;
     atomic_size_t weak_refcount;
-    deleter deleter;
+    atomic_fptr deleter;
     atomic_ptr obj;
 
 } shptr;
 
-shptr* shptr_init(size_t obj_size, deleter deleter)
+shptr* shptr_init(size_t obj_size, atomic_fptr deleter)
 {
     if ( !obj_size )
         return NULL;
@@ -60,7 +60,7 @@ void* shptr_get(shptr* sh_ptr)
     return sh_ptr->obj;
 }
 
-shptr* shptr_set_deleter(shptr* sh_ptr, deleter deleter)
+shptr* shptr_set_deleter(shptr* sh_ptr, atomic_fptr deleter)
 {
     if ( !sh_ptr )
         return NULL;
