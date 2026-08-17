@@ -1,12 +1,15 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdatomic.h>
 
 #define shptr_INIT(type, deleter_ptr) shptr_init(sizeof(type), deleter_ptr)
 #define shptr_DESTROY(sh_ptr, deleter_ptr) shptr_destroy(sh_ptr, deleter_ptr)
 
 #define shptr_GET(sh_ptr, type) *(type*)shptr_get(sh_ptr)
 #define shptr_SET(sh_ptr, type) shptr_GET(sh_ptr, type)
+
+#define shptr_SET_DELETER(sh_ptr, deleter_ptr) shptr_set_deleter(sh_ptr, deleter_ptr)
 
 #define shptr_REFCOUNT(sh_ptr, refcount) shptr_refcount(sh_ptr, refcount)
 
