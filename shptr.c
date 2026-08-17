@@ -1,10 +1,10 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 
 #define shptr_INIT(type, deleter_ptr) init_shptr(sizeof(type), deleter_ptr)
 #define shptr_GET(sh_ptr, type) *(type*)shptr_get(sh_ptr)
+#define shptr_SET(sh_ptr, type) shptr_GET(sh_ptr, type)
 
 #define STRONG 's'
 #define WEAK 'w'
