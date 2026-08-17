@@ -17,7 +17,6 @@
 #define shptr_REF_WEAK(sh_ptr) shptr_ref_weak(sh_ptr)
 #define shptr_UNREF_WEAK(sh_ptr) shptr_unref_weak(sh_ptr)
 
-
 #define STRONG 's'
 #define WEAK 'w'
 
