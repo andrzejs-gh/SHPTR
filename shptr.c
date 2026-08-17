@@ -22,17 +22,16 @@
 #define WEAK 'w'
 
 typedef void (*deleter)(void*);
+typedef void* _Atomic atomic_ptr;
 
 typedef struct
 {
     atomic_size_t strong_refcount;
     atomic_size_t weak_refcount;
     deleter deleter;
-    void* obj;
+    atomic_ptr obj;
 
 } shptr;
-
-void* shptr_get(shptr* sh_ptr);
 
 shptr* shptr_init(size_t obj_size, deleter deleter)
 {
@@ -55,7 +54,7 @@ shptr* shptr_init(size_t obj_size, deleter deleter)
 
 void* shptr_get(shptr* sh_ptr)
 {
-    if ( !sh_ptr || sh_ptr->strong_refcount == 0 )
+    if ( !sh_ptr )
         return NULL;
 
     return sh_ptr->obj;
