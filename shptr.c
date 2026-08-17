@@ -3,15 +3,18 @@
 #include <stdlib.h>
 
 #define shptr_INIT(type, deleter_ptr) shptr_init(sizeof(type), deleter_ptr)
+#define shptr_DESTROY(sh_ptr, deleter_ptr) shptr_destroy(sh_ptr, deleter_ptr)
+
 #define shptr_GET(sh_ptr, type) *(type*)shptr_get(sh_ptr)
 #define shptr_SET(sh_ptr, type) shptr_GET(sh_ptr, type)
+
+#define shptr_REFCOUNT(sh_ptr, refcount) shptr_refcount(sh_ptr, refcount)
 
 #define shptr_REF(sh_ptr) shptr_ref(sh_ptr)
 #define shptr_UNREF(sh_ptr) shptr_unref(sh_ptr)
 #define shptr_REF_WEAK(sh_ptr) shptr_ref_weak(sh_ptr)
 #define shptr_UNREF_WEAK(sh_ptr) shptr_unref_weak(sh_ptr)
 
-#define shptr_DESTROY(sh_ptr, deleter_ptr) shptr_destroy(sh_ptr, deleter_ptr)
 
 #define STRONG 's'
 #define WEAK 'w'
