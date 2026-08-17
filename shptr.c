@@ -4,7 +4,6 @@
 #include <stdatomic.h>
 
 #define shptr_INIT(type, deleter_ptr) shptr_init(sizeof(type), deleter_ptr)
-#define shptr_DESTROY(sh_ptr, deleter_ptr) shptr_destroy(sh_ptr, deleter_ptr)
 
 #define shptr_GET(sh_ptr, type) *(type*)shptr_get(sh_ptr)
 #define shptr_SET(sh_ptr, type) shptr_GET(sh_ptr, type)
@@ -26,12 +25,14 @@ typedef void (*deleter)(void*);
 
 typedef struct
 {
-    size_t strong_refcount;
-    size_t weak_refcount;
+    atomic_size_t strong_refcount;
+    atomic_size_t weak_refcount;
     deleter deleter;
     void* obj;
 
 } shptr;
+
+void* shptr_get(shptr* sh_ptr);
 
 shptr* shptr_init(size_t obj_size, deleter deleter)
 {
@@ -50,19 +51,6 @@ shptr* shptr_init(size_t obj_size, deleter deleter)
     };
 
     return ctrl_block;
-}
-
-shptr* shptr_destroy(shptr* sh_ptr, deleter deleter)
-{
-    if ( !sh_ptr )
-        return NULL;
-
-    if ( deleter )
-        deleter(sh_ptr->obj);
-
-    free(sh_ptr);
-
-    return NULL;
 }
 
 void* shptr_get(shptr* sh_ptr)
@@ -127,7 +115,10 @@ shptr* shptr_unref(shptr* sh_ptr)
     if ( --sh_ptr->strong_refcount == 0 )
     {
         if ( sh_ptr->deleter )
+        {
             sh_ptr->deleter(sh_ptr->obj);
+            sh_ptr->obj = NULL;
+        }
 
         if ( sh_ptr->weak_refcount == 0 )
         {
