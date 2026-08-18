@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdatomic.h>
+#include <stdbool.h>
 
 #define shptr_INIT(type, deleter_ptr) shptr_init(sizeof(type), deleter_ptr)
 
@@ -29,6 +30,7 @@ typedef struct
     atomic_size_t weak_refcount;
     atomic_fptr deleter;
     atomic_ptr obj;
+    // atomic_bool is_destroyed;
 
 } shptr;
 
@@ -72,7 +74,7 @@ shptr* shptr_set_deleter(shptr* sh_ptr, atomic_fptr deleter)
         return NULL;
 
     if ( sh_ptr->obj )
-        deleter ? (sh_ptr->deleter = deleter) : (sh_ptr->deleter = shptr_dummy_deleter);
+        sh_ptr->deleter = (deleter ? deleter : shptr_dummy_deleter);
 
     return sh_ptr;
 }
@@ -95,7 +97,26 @@ shptr* shptr_ref(shptr* sh_ptr)
     if ( !sh_ptr )
       return NULL;
 
-    sh_ptr->strong_refcount++;
+    // if (x = expected)
+    //    x = desired; return TRUE
+    // else
+    //    expected = x; return FALSE
+    size_t strong_refcount = sh_ptr->strong_refcount;
+
+    do
+    {
+        if ( strong_refcount == 0 )
+            return sh_ptr;
+
+    } while
+      (
+            !atomic_compare_exchange_weak
+            (
+                &sh_ptr->strong_refcount,
+                &strong_refcount,
+                strong_refcount + 1
+            )
+      );
 
     return sh_ptr;
 }
@@ -122,20 +143,24 @@ shptr* shptr_unref(shptr* sh_ptr)
     //    x = desired; return TRUE
     // else
     //    expected = x; return FALSE
-    while ( strong_refcount != 0 && !atomic_compare_exchange_weak(
-                                                    &sh_ptr->strong_refcount,
-                                                    &strong_refcount,
-                                                    strong_refcount - 1) )
-    {
 
-    }
+    while
+    (
+        strong_refcount != 0 &&
+        !atomic_compare_exchange_weak
+        (
+            &sh_ptr->strong_refcount,
+            &strong_refcount,
+            strong_refcount - 1
+        )
+    );
 
     if ( strong_refcount == 0 )
     {
         sh_ptr->deleter(sh_ptr->obj);
         sh_ptr->obj = NULL;
 
-        shptr_UNREF_WEAK(sh_ptr); // taking off the implicit weak reference
+        return shptr_UNREF_WEAK(sh_ptr); // taking off the implicit weak reference
     }
 
     return sh_ptr;
@@ -146,14 +171,9 @@ shptr* shptr_unref_weak(shptr* sh_ptr)
     if ( !sh_ptr )
         return NULL;
 
-    if ( sh_ptr->weak_refcount == 0 )
+    size_t weak_refcount = sh_ptr->weak_refcount;
+    if ( weak_refcount == 0 )
         return sh_ptr;
-
-    if ( --sh_ptr->weak_refcount == 0 && sh_ptr->strong_refcount == 0 )
-    {
-        free(sh_ptr);
-        return NULL;
-    }
 
     return sh_ptr;
 }
