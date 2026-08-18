@@ -1,30 +1,7 @@
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
+#include "shptr.h"
 #include <stdatomic.h>
-#include <stdbool.h>
 
-#define shptr_INIT(type, deleter_ptr) shptr_init(sizeof(type), deleter_ptr)
-
-#define shptr_GET(sh_ptr, type) *(type*)shptr_get(sh_ptr)
-#define shptr_SET(sh_ptr, type) shptr_GET(sh_ptr, type)
-
-#define shptr_SET_DELETER(sh_ptr, deleter_ptr) shptr_set_deleter(sh_ptr, deleter_ptr)
-
-#define shptr_REFCOUNT(sh_ptr, refcount) shptr_refcount(sh_ptr, refcount)
-
-#define shptr_REF(sh_ptr) shptr_ref(sh_ptr)
-#define shptr_UNREF(sh_ptr) shptr_unref(sh_ptr)
-#define shptr_REF_WEAK(sh_ptr) shptr_ref_weak(sh_ptr)
-#define shptr_UNREF_WEAK(sh_ptr) shptr_unref_weak(sh_ptr)
-
-#define STRONG 's'
-#define WEAK 'w'
-
-typedef void* _Atomic atomic_ptr;
-typedef void (* _Atomic atomic_fptr)(atomic_ptr);
-
-typedef struct
+typedef struct shptr
 {
     atomic_size_t strong_refcount;
     atomic_size_t weak_refcount;
@@ -32,8 +9,6 @@ typedef struct
     atomic_ptr obj;
 
 } shptr;
-
-shptr* shptr_unref_weak(shptr* sh_ptr);
 
 shptr* shptr_init(size_t obj_size, atomic_fptr deleter)
 {
@@ -142,7 +117,6 @@ shptr* shptr_unref(shptr* sh_ptr)
     //    x = desired; return TRUE
     // else
     //    expected = x; return FALSE
-
     while
     (
         strong_refcount != 0 &&
@@ -154,7 +128,7 @@ shptr* shptr_unref(shptr* sh_ptr)
         )
     );
 
-    if ( sh_ptr->strong_refcount == 0 )
+    if ( strong_refcount == 1 ) // if THIS thread has set the value to 0
     {
         sh_ptr->deleter(sh_ptr->obj);
         sh_ptr->obj = NULL;
@@ -176,7 +150,7 @@ shptr* shptr_unref_weak(shptr* sh_ptr)
 
     while
     (
-        weak_refcount != 1 &&
+        weak_refcount != 0 &&
         !atomic_compare_exchange_weak
         (
             &sh_ptr->weak_refcount,
@@ -185,7 +159,7 @@ shptr* shptr_unref_weak(shptr* sh_ptr)
         )
     );
 
-    if ( sh_ptr->weak_refcount == 1 && sh_ptr->strong_refcount == 0 )
+    if ( weak_refcount == 1 )
     {
         free(sh_ptr);
         return NULL;
