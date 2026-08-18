@@ -30,7 +30,6 @@ typedef struct
     atomic_size_t weak_refcount;
     atomic_fptr deleter;
     atomic_ptr obj;
-    // atomic_bool is_destroyed;
 
 } shptr;
 
@@ -155,7 +154,7 @@ shptr* shptr_unref(shptr* sh_ptr)
         )
     );
 
-    if ( strong_refcount == 0 )
+    if ( sh_ptr->strong_refcount == 0 )
     {
         sh_ptr->deleter(sh_ptr->obj);
         sh_ptr->obj = NULL;
@@ -172,6 +171,9 @@ shptr* shptr_unref_weak(shptr* sh_ptr)
         return NULL;
 
     size_t weak_refcount = sh_ptr->weak_refcount;
+    if ( weak_refcount == 1 && sh_ptr->strong_refcount > 0 )
+        return sh_ptr;
+
     while
     (
         weak_refcount != 1 &&
@@ -183,13 +185,10 @@ shptr* shptr_unref_weak(shptr* sh_ptr)
         )
     );
 
-    if ( weak_refcount == 1 )
+    if ( sh_ptr->weak_refcount == 1 && sh_ptr->strong_refcount == 0 )
     {
-        if ( sh_ptr->strong_refcount == 0 )
-        {
-            free(sh_ptr);
-            return NULL;
-        }
+        free(sh_ptr);
+        return NULL;
     }
 
     return sh_ptr;
