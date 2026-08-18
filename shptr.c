@@ -185,9 +185,12 @@ shptr* shptr_unref_weak(shptr* sh_ptr)
 
     if ( weak_refcount == 1 )
     {
-
+        if ( sh_ptr->strong_refcount == 0 )
+        {
+            free(sh_ptr);
+            return NULL;
+        }
     }
-
 
     return sh_ptr;
 }
