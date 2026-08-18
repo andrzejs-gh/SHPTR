@@ -172,8 +172,22 @@ shptr* shptr_unref_weak(shptr* sh_ptr)
         return NULL;
 
     size_t weak_refcount = sh_ptr->weak_refcount;
-    if ( weak_refcount == 0 )
-        return sh_ptr;
+    while
+    (
+        weak_refcount != 1 &&
+        !atomic_compare_exchange_weak
+        (
+            &sh_ptr->weak_refcount,
+            &weak_refcount,
+            weak_refcount - 1
+        )
+    );
+
+    if ( weak_refcount == 1 )
+    {
+
+    }
+
 
     return sh_ptr;
 }
