@@ -17,7 +17,7 @@
 
 #define shptr_REFCOUNT(sh_ptr, refcount) shptr_refcount(sh_ptr, refcount)
 #define shptr_ISNULL(sh_ptr) ( sh_ptr ? false : true )
-#define shptr_ISGONE(sh_ptr) ( sh_ptr ? ( sh_ptr->obj ? false : true ) : true )
+#define shptr_ISGONE(sh_ptr) ( sh_ptr ? ( sh_ptr->ptr ? false : true ) : true )
 
 #define shptr_REF(sh_ptr) shptr_ref(sh_ptr)
 #define shptr_UNREF(sh_ptr) shptr_unref(sh_ptr)
