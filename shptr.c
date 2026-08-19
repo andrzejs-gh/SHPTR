@@ -14,12 +14,12 @@ static inline void shptr_dummy_deleter(atomic_ptr ptr)
     return;
 }
 
-shptr* shptr_init(size_t ptr_size, atomic_fptr deleter)
+shptr* shptr_init(size_t obj_size, atomic_fptr deleter)
 {
-    if ( !ptr_size )
+    if ( !obj_size )
         return NULL;
 
-    shptr* ctrl_block = malloc( sizeof(shptr) + ptr_size );
+    shptr* ctrl_block = malloc( sizeof(shptr) + obj_size );
     if ( !ctrl_block )
         return NULL;
 
@@ -41,9 +41,12 @@ void* shptr_ptr(shptr* sh_ptr)
 shptr* shptr_set_deleter(shptr* sh_ptr, atomic_fptr deleter)
 {
     if ( sh_ptr->ptr )
+    {
         sh_ptr->deleter = (deleter ? deleter : shptr_dummy_deleter);
+        return sh_ptr;
+    }
 
-    return sh_ptr;
+    return NULL;
 }
 
 size_t shptr_refcount(shptr* sh_ptr, char refcount)
