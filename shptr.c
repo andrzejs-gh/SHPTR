@@ -69,8 +69,8 @@ shptr* shptr_ref(shptr* sh_ptr)
 
     do
     {
-        if ( strong_refcount == 0 )
-            return sh_ptr;
+        if ( strong_refcount == 0 ) // ANOTHER thread set the value to 0
+            return sh_ptr;          // or it was initialy 0
 
     } while
       (
@@ -102,7 +102,7 @@ shptr* shptr_unref(shptr* sh_ptr)
     do
     {
         if ( strong_refcount == 0 ) // ANOTHER thread set the value to 0
-            return sh_ptr;
+            return sh_ptr;          // or it was initialy 0
 
     } while
       (
