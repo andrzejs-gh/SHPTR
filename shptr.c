@@ -53,9 +53,9 @@ size_t shptr_refcount(shptr* sh_ptr, char refcount)
 {
     switch (refcount)
     {
-        case 's': return sh_ptr->strong_refcount;
-        case 'w': return sh_ptr->weak_refcount;
-        default: return SIZE_MAX;
+        case STRONG: return sh_ptr->strong_refcount;
+        case WEAK:   return sh_ptr->weak_refcount;
+        default:     return SIZE_MAX;
     }
 }
 
