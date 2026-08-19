@@ -119,7 +119,7 @@ shptr* shptr_unref(shptr* sh_ptr)
         sh_ptr->deleter(sh_ptr->ptr);
         sh_ptr->ptr = NULL;
 
-        return shptr_UNREF_WEAK(sh_ptr); // taking off the implicit weak reference
+        return shptr_UNREF_WEAK(sh_ptr); // take off the implicit weak reference
     }
 
     return sh_ptr;
@@ -131,19 +131,23 @@ shptr* shptr_unref_weak(shptr* sh_ptr)
     if ( weak_refcount == 1 && sh_ptr->strong_refcount > 0 )
         return sh_ptr;
 
-    while
-    (
-        weak_refcount != 0 &&
-        !atomic_compare_exchange_weak
-        (
-            &sh_ptr->weak_refcount,
-            &weak_refcount,
-            weak_refcount - 1
-        )
-    );
-
-    if ( weak_refcount == 1 )
+    do
     {
+        if ( weak_refcount == 0 ) // ANOTHER thread has set the value to 0
+            return NULL;          // so ANOTHER thread destroys the ctrl block
+
+    } while
+      (
+          !atomic_compare_exchange_weak
+          (
+              &sh_ptr->weak_refcount,
+              &weak_refcount,
+              weak_refcount - 1
+          )
+      );
+
+    if ( weak_refcount == 1 ) // THIS thread has set the value to 0
+    {                         // so THIS thread must destroy the ctrl block
         free(sh_ptr);
         return NULL;
     }
