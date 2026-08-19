@@ -95,24 +95,26 @@ shptr* shptr_ref_weak(shptr* sh_ptr)
 shptr* shptr_unref(shptr* sh_ptr)
 {
     size_t strong_refcount = sh_ptr->strong_refcount;
-    if ( strong_refcount == 0 )
-        return sh_ptr;
     // if (x = expected)
     //    x = desired; return TRUE
     // else
     //    expected = x; return FALSE
-    while
-    (
-        strong_refcount != 0 &&
-        !atomic_compare_exchange_weak
-        (
-            &sh_ptr->strong_refcount,
-            &strong_refcount,
-            strong_refcount - 1
-        )
-    );
+    do
+    {
+        if ( strong_refcount == 0 ) // ANOTHER thread set the value to 0
+            return sh_ptr;
 
-    if ( strong_refcount == 1 ) // if THIS thread has set the value to 0
+    } while
+      (
+          !atomic_compare_exchange_weak
+          (
+              &sh_ptr->strong_refcount,
+              &strong_refcount,
+              strong_refcount - 1
+          )
+      );
+
+    if ( strong_refcount == 1 ) // THIS thread set the value to 0
     {
         sh_ptr->deleter(sh_ptr->ptr);
         sh_ptr->ptr = NULL;
