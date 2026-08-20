@@ -7,7 +7,8 @@
 #include <stdatomic.h>
 #include <stdbool.h>
 
-#define shptr_INIT(type, deleter_ptr) shptr_init(sizeof(type), deleter_ptr)
+#define shptr_INIT(type, deleter_ptr) \
+                   shptr_init(sizeof(type), _Alignof(type), deleter_ptr)
 
 #define shptr_PTR(sh_ptr) shptr_ptr(sh_ptr)
 #define shptr_GET(sh_ptr, type) *(type*)shptr_ptr(sh_ptr)
@@ -32,7 +33,7 @@ typedef void (* _Atomic atomic_fptr)(atomic_ptr);
 
 typedef struct shptr shptr;
 
-shptr* shptr_init(size_t obj_size, atomic_fptr deleter);
+shptr* shptr_init(size_t obj_size, size_t alignment, atomic_fptr deleter);
 void* shptr_ptr(shptr* sh_ptr);
 shptr* shptr_set_deleter(shptr* sh_ptr, atomic_fptr deleter);
 size_t shptr_refcount(shptr* sh_ptr, char refcount);

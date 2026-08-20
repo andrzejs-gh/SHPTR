@@ -1,4 +1,6 @@
 #include "shptr.h"
+#include <stddef.h>
+#include <stdint.h>
 
 typedef struct shptr
 {
@@ -14,20 +16,22 @@ static inline void shptr_dummy_deleter(atomic_ptr ptr)
     return;
 }
 
-shptr* shptr_init(size_t obj_size, atomic_fptr deleter)
+shptr* shptr_init(size_t obj_size, size_t alignment, atomic_fptr deleter)
 {
     if ( !obj_size )
         return NULL;
 
-    shptr* ctrl_block = malloc( sizeof(shptr) + obj_size );
+    shptr* ctrl_block = malloc( sizeof *ctrl_block + obj_size + alignment );
     if ( !ctrl_block )
         return NULL;
+
+    size_t padding = ( (uintptr_t)ctrl_block + sizeof *ctrl_block ) % alignment;
 
     *ctrl_block = (shptr){
         .strong_refcount = 1,
         .weak_refcount = 1,
         .deleter = (deleter ? deleter : shptr_dummy_deleter),
-        .ptr = ctrl_block + 1
+        .ptr = (char*)ctrl_block + sizeof *ctrl_block + padding
     };
 
     return ctrl_block;
