@@ -8,7 +8,7 @@
 #include <stdbool.h>
 
 #define shptr_INIT(type, deleter_ptr) \
-                   shptr_init(sizeof(type), _Alignof(type), deleter_ptr)
+                   shptr_init(sizeof(type), _Alignof(type), (atomic_fptr)deleter_ptr)
 
 #define shptr_PTR(sh_ptr) shptr_ptr(sh_ptr)
 #define shptr_GET(sh_ptr, type) *(type*)shptr_ptr(sh_ptr)
