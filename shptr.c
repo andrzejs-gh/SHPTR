@@ -1,4 +1,5 @@
 #include "shptr.h"
+#include <stddef.h>
 
 typedef struct shptr
 {
@@ -23,7 +24,9 @@ shptr* shptr_init(size_t obj_size, size_t alignment, atomic_fptr deleter)
     if ( !ctrl_block )
         return NULL;
 
-    size_t padding = ( (uintptr_t)ctrl_block + sizeof *ctrl_block ) % alignment;
+    uintptr_t ctrl_block_end = (uintptr_t)ctrl_block + sizeof *ctrl_block;
+    size_t padding = ctrl_block_end % alignment;
+           padding = alignment - padding;
 
     *ctrl_block = (shptr){
         .strong_refcount = 1,
