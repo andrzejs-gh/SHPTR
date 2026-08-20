@@ -26,7 +26,7 @@ shptr* shptr_init(size_t obj_size, size_t alignment, atomic_fptr deleter)
 
     uintptr_t ctrl_block_end = (uintptr_t)ctrl_block + sizeof *ctrl_block;
     size_t padding = ctrl_block_end % alignment;
-           padding = alignment - padding;
+           padding = ( padding ? alignment - padding : 0 );
 
     *ctrl_block = (shptr){
         .strong_refcount = 1,
