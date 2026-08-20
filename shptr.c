@@ -1,5 +1,4 @@
 #include "shptr.h"
-#include <stddef.h>
 
 typedef struct shptr
 {
