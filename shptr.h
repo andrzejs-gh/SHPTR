@@ -10,8 +10,9 @@
 #define shptr_INIT(type, deleter_ptr) \
                    shptr_init(sizeof(type), _Alignof(type), (atomic_fptr)deleter_ptr)
 
-#define shptr_PTR(sh_ptr) shptr_ptr(sh_ptr)
-#define shptr_GET(sh_ptr, type) *(type*)shptr_ptr(sh_ptr)
+#define shptr_P(sh_ptr) (shptr_ptr(sh_ptr))
+#define shptr_PTR(sh_ptr, type) ((type*)shptr_ptr(sh_ptr))
+#define shptr_GET(sh_ptr, type) (*(type*)shptr_ptr(sh_ptr))
 #define shptr_SET(sh_ptr, type) shptr_GET(sh_ptr, type)
 
 #define shptr_SET_DELETER(sh_ptr, deleter_ptr) shptr_set_deleter(sh_ptr, deleter_ptr)
