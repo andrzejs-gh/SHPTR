@@ -51,7 +51,7 @@ int observer_worker(void* arg)
 	{
 		shptr_REF(p);
 		shptr_REF_WEAK(p);
-		printf("Observer worker [ %d ] in action.", id);
+		printf("Observer worker [ %d ] in action.\n", id);
 		shptr_UNREF(p);
 		shptr_UNREF_WEAK(p);
 	}
@@ -67,14 +67,24 @@ int main(void)
 	shptr_SET(p, some_t) = (some_t){'a', -33, 0.1234};
 
 	thrd_t T[4];
-	thrd_create(&T[0], owning_worker, p);
-	thrd_create(&T[1], observer_worker, p);
-	thrd_create(&T[2], owning_worker, p);
-	thrd_create(&T[3], observer_worker, p);
+	thrd_create(&T[0], owning_worker, shptr_REF(p));
+	thrd_create(&T[1], observer_worker, shptr_REF_WEAK(p));
+	thrd_create(&T[2], owning_worker, shptr_REF(p));
+	thrd_create(&T[3], observer_worker, shptr_REF_WEAK(p));
 
 	for ( size_t i = 0; i < 4; i++ )
 		thrd_join(T[i], NULL);
 
-	shptr_UNREF(p);
+	p = shptr_UNREF(p);
+	if ( !p )
+		puts("OK, object has been destroyed and shared ptr is gone");
+	else
+	{
+		puts("error");
+		size_t strong = shptr_REFCOUNT(p, STRONG);
+		size_t weak = shptr_REFCOUNT(p, WEAK);
+		printf("strong = %zu, weak = %zu \n", strong, weak);
+	}
+
 	return 0;
 }
