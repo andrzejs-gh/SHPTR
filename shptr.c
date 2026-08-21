@@ -1,5 +1,4 @@
 #include "shptr.h"
-#include <stdlib.h>
 
 typedef struct shptr
 {
@@ -22,12 +21,7 @@ shptr* shptr_init(size_t obj_size, size_t alignment, atomic_fptr deleter)
 
     shptr* ctrl_block;
 
-    if ( alignment <= _Alignof(max_align_t) )
-        ctrl_block = malloc( sizeof *ctrl_block + obj_size + alignment );
-    else
-        ctrl_block = aligned_alloc(alignment,
-                                   sizeof *ctrl_block + obj_size + alignment);
-
+    ctrl_block = malloc( sizeof *ctrl_block + obj_size + alignment );
     if ( !ctrl_block )
         return NULL;
 
