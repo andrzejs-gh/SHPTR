@@ -3,6 +3,7 @@
 #include <threads.h>
 #include <stdatomic.h>
 #include <stdbool.h>
+#include <assert.h>
 
 typedef struct
 {
@@ -60,8 +61,33 @@ int observer_worker(void* arg)
 	return 0;
 }
 
+void underflow_test(void)
+{
+	shptr* p = shptr_INIT(some_t, dter);
+	if ( !p ){ puts("shptr_INIT failure in underflow test."); assert(false); }
+	shptr_SET(p, some_t) = (some_t){'a', -33, 0.1234};
+
+	shptr_UNREF(p);
+	printf("strong = %zu, weak = %zu \n", shptr_STRONG_COUNT(p), shptr_WEAK_COUNT(p));
+	return;
+	//shptr_REF_WEAK(p);
+
+	for ( size_t i = 0; i < 100; i++ )
+	{
+		shptr_UNREF(p);
+		//shptr_UNREF_WEAK(p);
+		// p ? printf("strong = %zu \n", shptr_STRONG_COUNT(p)) : puts("dead") ;
+		// p ? printf("weak = %zu \n", shptr_WEAK_COUNT(p)) : puts("dead") ;
+		//if ( !p ) puts("p is DEAD");
+	}
+
+	//assert(false);
+}
+
 int main(void)
 {
+	underflow_test(); return 0;
+
 	shptr* p = shptr_INIT(some_t, dter);
 	if ( !p ){ puts("shptr_INIT failure."); return -1; }
 	shptr_SET(p, some_t) = (some_t){'a', -33, 0.1234};
@@ -81,8 +107,8 @@ int main(void)
 	else
 	{
 		puts("error");
-		size_t strong = shptr_REFCOUNT(p, STRONG);
-		size_t weak = shptr_REFCOUNT(p, WEAK);
+		size_t strong = shptr_STRONG_COUNT(p);
+		size_t weak = shptr_WEAK_COUNT(p);
 		printf("strong = %zu, weak = %zu \n", strong, weak);
 	}
 

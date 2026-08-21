@@ -55,14 +55,14 @@ shptr* shptr_set_deleter(shptr* sh_ptr, atomic_fptr deleter)
     return NULL;
 }
 
-size_t shptr_refcount(shptr* sh_ptr, char refcount)
+size_t shptr_strong(shptr* sh_ptr)
 {
-    switch (refcount)
-    {
-        case STRONG: return sh_ptr->strong_refcount;
-        case WEAK:   return sh_ptr->weak_refcount;
-        default:     return SIZE_MAX;
-    }
+    return sh_ptr->strong_refcount;
+}
+
+size_t shptr_weak(shptr* sh_ptr)
+{
+    return sh_ptr->weak_refcount;
 }
 
 shptr* shptr_ref(shptr* sh_ptr)
