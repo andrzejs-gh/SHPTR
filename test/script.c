@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <threads.h>
 #include <stdatomic.h>
+#include <stdbool.h>
 
 typedef struct
 {
@@ -11,8 +12,11 @@ typedef struct
 
 } some_t;
 
+bool obj_destroyed = false;
+
 void dter(const void* ptr)
 {
+	obj_destroyed = true;
 	puts(">>> some_t object destroyed");
 }
 
@@ -58,10 +62,18 @@ int observer_worker(void* arg)
 
 int main(void)
 {
-
 	shptr* p = shptr_INIT(some_t, dter);
 	if ( !p ){ puts("shptr_INIT failure."); return -1; }
 	shptr_SET(p, some_t) = (some_t){'a', -33, 0.1234};
+
+	thrd_t T[4];
+	thrd_create(&T[0], owning_worker, p);
+	thrd_create(&T[1], observer_worker, p);
+	thrd_create(&T[2], owning_worker, p);
+	thrd_create(&T[3], observer_worker, p);
+
+	for ( size_t i = 0; i < 4; i++ )
+		thrd_join(T[i], NULL);
 
 	shptr_UNREF(p);
 	return 0;
