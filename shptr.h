@@ -15,11 +15,12 @@
 #define shptr_GET(sh_ptr, type) (*(type*)shptr_ptr(sh_ptr))
 #define shptr_SET(sh_ptr, type) shptr_GET(sh_ptr, type)
 
-#define shptr_SET_DELETER(sh_ptr, deleter_ptr) shptr_set_deleter(sh_ptr, deleter_ptr)
+#define shptr_SET_DELETER(sh_ptr, deleter_ptr) \
+                   shptr_set_deleter(sh_ptr, (atomic_fptr)deleter_ptr)
 
 #define shptr_REFCOUNT(sh_ptr, refcount) shptr_refcount(sh_ptr, refcount)
 #define shptr_ISNULL(sh_ptr) ( sh_ptr ? false : true )
-#define shptr_ISGONE(sh_ptr) ( sh_ptr ? ( sh_ptr->ptr ? false : true ) : true )
+#define shptr_ISGONE(sh_ptr) ( sh_ptr ? ( shptr_P(sh_ptr) ? false : true ) : true )
 
 #define shptr_REF(sh_ptr) shptr_ref(sh_ptr)
 #define shptr_UNREF(sh_ptr) shptr_unref(sh_ptr)
