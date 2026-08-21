@@ -28,11 +28,14 @@ int owning_worker(void* arg)
 
 	shptr* p = (shptr*)arg;
 
+	printf("Owning worker [ %d ] started.\n", id);
+
 	for ( size_t i = 0; i < 1000000; i++)
 	{
 		shptr_REF(p);
 		shptr_REF_WEAK(p);
-		printf("Owning worker [ %d ] in action.\n", id);
+		int x = shptr_GET(p, some_t).i;
+		shptr_SET(p, some_t).d = (double)i/(i+1);
 		shptr_UNREF(p);
 		shptr_UNREF_WEAK(p);
 	}
@@ -48,11 +51,16 @@ int observer_worker(void* arg)
 
 	shptr* p = (shptr*)arg;
 
+	printf("Observer worker [ %d ] started.\n", id);
+
 	for ( size_t i = 0; i < 1000000; i++)
 	{
 		shptr_REF(p);
 		shptr_REF_WEAK(p);
-		printf("Observer worker [ %d ] in action.\n", id);
+
+		// if ( i % 10000 == 0 )
+		// 	printf("");
+
 		shptr_UNREF(p);
 		shptr_UNREF_WEAK(p);
 	}
@@ -86,11 +94,12 @@ void underflow_test(void)
 
 int main(void)
 {
-	underflow_test(); return 0;
+	//underflow_test(); return 0;
 
 	shptr* p = shptr_INIT(some_t, dter);
 	if ( !p ){ puts("shptr_INIT failure."); return -1; }
 	shptr_SET(p, some_t) = (some_t){'a', -33, 0.1234};
+	// shptr_UNREF_WEAK(p); shptr_UNREF_WEAK(p); shptr_UNREF_WEAK(p);
 
 	thrd_t T[4];
 	thrd_create(&T[0], owning_worker, shptr_REF(p));
@@ -101,7 +110,7 @@ int main(void)
 	for ( size_t i = 0; i < 4; i++ )
 		thrd_join(T[i], NULL);
 
-	p = shptr_UNREF(p);
+	shptr_UNREF(p);
 	if ( !p )
 		puts("OK, object has been destroyed and shared ptr is gone");
 	else
