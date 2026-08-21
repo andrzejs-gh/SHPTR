@@ -9,7 +9,7 @@ typedef struct shptr
 
 } shptr;
 
-static inline void shptr_dummy_deleter(atomic_ptr ptr)
+static inline void shptr_dummy_deleter(const void* ptr)
 {
     return;
 }

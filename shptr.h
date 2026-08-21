@@ -31,7 +31,7 @@
 #define WEAK 'w'
 
 typedef void* _Atomic atomic_ptr;
-typedef void (* _Atomic atomic_fptr)(atomic_ptr);
+typedef void (* _Atomic atomic_fptr)(const void* ptr);
 
 typedef struct shptr shptr;
 
