@@ -7,8 +7,8 @@
 #include <stdatomic.h>
 #include <stdbool.h>
 
-#define shptr_INIT(type, deleter_ptr) \
-                   shptr_init(sizeof(type), _Alignof(type), (atomic_fptr)deleter_ptr)
+#define shptr_INIT(type, destructor_ptr) \
+                   shptr_init(sizeof(type), _Alignof(type), (atomic_fptr)destructor_ptr)
 
 #define shptr_P(sh_ptr)         (sh_ptr ? shptr_ptr(sh_ptr)        : NULL)
 #define shptr_PTR(sh_ptr, type) (sh_ptr ? (type*)shptr_ptr(sh_ptr) : NULL)
@@ -16,9 +16,9 @@
 #define shptr_GET(sh_ptr, type) (*(type*)shptr_ptr(sh_ptr))
 #define shptr_SET(sh_ptr, type) shptr_GET(sh_ptr, type)
 
-#define shptr_SET_DELETER(sh_ptr, deleter_ptr)                           \
-                   (sh_ptr ?                                             \
-                   shptr_set_deleter(sh_ptr, (atomic_fptr)deleter_ptr) : \
+#define shptr_SET_DTOR(sh_ptr, destructor_ptr)                                 \
+                   (sh_ptr ?                                                   \
+                   shptr_set_destructor(sh_ptr, (atomic_fptr)destructor_ptr) : \
                    NULL)
 
 #define shptr_STRONG_COUNT(sh_ptr) (sh_ptr ? shptr_strong(sh_ptr) : SIZE_MAX)
@@ -37,9 +37,9 @@ typedef void (* _Atomic atomic_fptr)(const void* ptr);
 
 typedef struct shptr shptr;
 
-shptr* shptr_init(size_t obj_size, size_t alignment, atomic_fptr deleter);
+shptr* shptr_init(size_t obj_size, size_t alignment, atomic_fptr destructor);
 void* shptr_ptr(shptr* sh_ptr);
-shptr* shptr_set_deleter(shptr* sh_ptr, atomic_fptr deleter);
+shptr* shptr_set_destructor(shptr* sh_ptr, atomic_fptr destructor);
 size_t shptr_strong(shptr* sh_ptr);
 size_t shptr_weak(shptr* sh_ptr);
 shptr* shptr_ref(shptr* sh_ptr);

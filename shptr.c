@@ -1,38 +1,59 @@
 #include "shptr.h"
+#include <stddef.h>
 
 typedef struct shptr
 {
     atomic_size_t strong_refcount;
     atomic_size_t weak_refcount;
-    atomic_fptr deleter;
+    atomic_fptr destructor;
     atomic_ptr ptr;
 
 } shptr;
 
-static inline void shptr_dummy_deleter(const void* ptr)
+static inline void shptr_dummy_destructor(const void* ptr)
 {
     return;
 }
 
-shptr* shptr_init(size_t obj_size, size_t alignment, atomic_fptr deleter)
+shptr* shptr_init(size_t obj_size, size_t alignment, atomic_fptr destructor)
 {
     if ( !obj_size )
         return NULL;
 
     shptr* ctrl_block;
+    size_t padding;
 
-    ctrl_block = malloc( sizeof *ctrl_block + obj_size + alignment );
-    if ( !ctrl_block )
-        return NULL;
+    if ( alignment <= _Alignof(max_align_t) )
+    {
+        padding = (alignment - (sizeof *ctrl_block % alignment)) % alignment;
 
-    uintptr_t ctrl_block_end = (uintptr_t)ctrl_block + sizeof *ctrl_block;
-    size_t padding = ctrl_block_end % alignment;
-           padding = ( padding ? alignment - padding : 0 );
+        ctrl_block = malloc( sizeof *ctrl_block + padding + obj_size );
+        if ( !ctrl_block )
+            return NULL;
+    }
+    else // overaligned type
+    {
+        ctrl_block = malloc( sizeof *ctrl_block + alignment + obj_size );
+        if ( !ctrl_block )
+            return NULL;
+
+        uintptr_t ctrl_block_end = (uintptr_t)ctrl_block + sizeof *ctrl_block;
+        padding = ctrl_block_end % alignment;
+        padding = ( padding ? alignment - padding : 0 );
+
+        shptr* p = realloc(ctrl_block, sizeof *ctrl_block + padding + obj_size);
+        if ( !p )
+        {
+            free(ctrl_block);
+            return NULL;
+        }
+        ctrl_block = p;
+    }
 
     *ctrl_block = (shptr){
         .strong_refcount = 1,
         .weak_refcount = 1,
-        .deleter = (deleter ? deleter : shptr_dummy_deleter),
+        .destructor = (destructor ? destructor : shptr_dummy_destructor),
         .ptr = (char*)ctrl_block + sizeof *ctrl_block + padding
     };
 
@@ -44,11 +65,11 @@ void* shptr_ptr(shptr* sh_ptr)
     return sh_ptr->ptr;
 }
 
-shptr* shptr_set_deleter(shptr* sh_ptr, atomic_fptr deleter)
+shptr* shptr_set_destructor(shptr* sh_ptr, atomic_fptr destructor)
 {
     if ( sh_ptr->ptr )
     {
-        sh_ptr->deleter = (deleter ? deleter : shptr_dummy_deleter);
+        sh_ptr->destructor = (destructor ? destructor : shptr_dummy_destructor);
         return sh_ptr;
     }
 
@@ -122,7 +143,7 @@ shptr* shptr_unref(shptr* sh_ptr)
 
     if ( strong_refcount == 1 ) // THIS thread set the value to 0
     {
-        sh_ptr->deleter(sh_ptr->ptr);
+        sh_ptr->destructor(sh_ptr->ptr);
         sh_ptr->ptr = NULL;
 
         return shptr_UNREF_WEAK(sh_ptr); // take off the implicit weak reference

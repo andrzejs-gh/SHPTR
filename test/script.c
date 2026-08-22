@@ -15,7 +15,7 @@ typedef struct
 
 bool obj_destroyed = false;
 
-void dter(const void* ptr)
+void dtor(const void* ptr)
 {
 	obj_destroyed = true;
 	puts(">>> some_t object destroyed");
@@ -34,8 +34,10 @@ int owning_worker(void* arg)
 	{
 		shptr_REF(p);
 		shptr_REF_WEAK(p);
+
 		int x = shptr_GET(p, some_t).i;
 		shptr_SET(p, some_t).d = (double)i/(i+1);
+
 		shptr_UNREF(p);
 		shptr_UNREF_WEAK(p);
 	}
@@ -71,7 +73,7 @@ int observer_worker(void* arg)
 
 void underflow_test(void)
 {
-	shptr* p = shptr_INIT(some_t, dter);
+	shptr* p = shptr_INIT(some_t, dtor);
 	if ( !p ){ puts("shptr_INIT failure in underflow test."); assert(false); }
 	shptr_SET(p, some_t) = (some_t){'a', -33, 0.1234};
 
@@ -96,7 +98,7 @@ int main(void)
 {
 	//underflow_test(); return 0;
 
-	shptr* p = shptr_INIT(some_t, dter);
+	shptr* p = shptr_INIT(some_t, dtor);
 	if ( !p ){ puts("shptr_INIT failure."); return -1; }
 	shptr_SET(p, some_t) = (some_t){'a', -33, 0.1234};
 	// shptr_UNREF_WEAK(p); shptr_UNREF_WEAK(p); shptr_UNREF_WEAK(p);
