@@ -35,8 +35,8 @@ int owning_worker(void* arg)
 		shptr_REF(p);
 		shptr_REF_WEAK(p);
 
-		int x = shptr_GET(p, some_t).i;
-		shptr_SET(p, some_t).d = (double)i/(i+1);
+		int x = shptr_VAL(p, some_t).i;
+		shptr_VAL(p, some_t).d = (double)i/(i+1);
 
 		shptr_UNREF(p);
 		shptr_UNREF_WEAK(p);
@@ -75,7 +75,7 @@ void underflow_test(void)
 {
 	shptr* p = shptr_INIT(some_t, dtor);
 	if ( !p ){ puts("shptr_INIT failure in underflow test."); assert(false); }
-	shptr_SET(p, some_t) = (some_t){'a', -33, 0.1234};
+	shptr_VAL(p, some_t) = (some_t){'a', -33, 0.1234};
 
 	shptr_UNREF(p);
 	printf("strong = %zu, weak = %zu \n", shptr_STRONG_COUNT(p), shptr_WEAK_COUNT(p));
@@ -100,7 +100,7 @@ int main(void)
 
 	shptr* p = shptr_INIT(some_t, dtor);
 	if ( !p ){ puts("shptr_INIT failure."); return -1; }
-	shptr_SET(p, some_t) = (some_t){'a', -33, 0.1234};
+	shptr_VAL(p, some_t) = (some_t){'a', -33, 0.1234};
 	// shptr_UNREF_WEAK(p); shptr_UNREF_WEAK(p); shptr_UNREF_WEAK(p);
 
 	thrd_t T[4];

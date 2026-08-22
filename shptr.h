@@ -18,8 +18,7 @@
                   PTR_MACRO_SELECTOR(__VA_ARGS__, shptr_TYPED_PTR, shptr_VOID_PTR) \
                   (__VA_ARGS__)
 
-#define shptr_GET(sh_ptr, type) (*(type*)shptr_ptr(sh_ptr))
-#define shptr_SET(sh_ptr, type) shptr_GET(sh_ptr, type)
+#define shptr_VAL(sh_ptr, type) (*(type*)shptr_ptr(sh_ptr))
 
 #define shptr_SET_DTOR(sh_ptr, destructor_ptr)                                 \
                    (sh_ptr ?                                                   \
