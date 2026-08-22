@@ -10,8 +10,13 @@
 #define shptr_INIT(type, destructor_ptr) \
                    shptr_init(sizeof(type), _Alignof(type), (atomic_fptr)destructor_ptr)
 
-#define shptr_P(sh_ptr)         (sh_ptr ? shptr_ptr(sh_ptr)        : NULL)
-#define shptr_PTR(sh_ptr, type) (sh_ptr ? (type*)shptr_ptr(sh_ptr) : NULL)
+#define shptr_VOID_PTR(sh_ptr)        (sh_ptr ? shptr_ptr(sh_ptr)        : NULL)
+#define shptr_TYPED_PTR(sh_ptr, type) (sh_ptr ? (type*)shptr_ptr(sh_ptr) : NULL)
+
+#define PTR_MACRO_SELECTOR(arg1, arg2, arg3, ...) arg3
+#define shptr_PTR(...)                                                             \
+                  PTR_MACRO_SELECTOR(__VA_ARGS__, shptr_TYPED_PTR, shptr_VOID_PTR) \
+                  (__VA_ARGS__)
 
 #define shptr_GET(sh_ptr, type) (*(type*)shptr_ptr(sh_ptr))
 #define shptr_SET(sh_ptr, type) shptr_GET(sh_ptr, type)
