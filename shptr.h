@@ -29,7 +29,7 @@
 #define shptr_WEAK_COUNT(sh_ptr)   (sh_ptr ? shptr_weak(sh_ptr)   : SIZE_MAX)
 
 #define shptr_ISNULL(sh_ptr) ( sh_ptr ? false : true )
-#define shptr_ISGONE(sh_ptr) ( sh_ptr ? ( shptr_P(sh_ptr) ? false : true ) : true )
+#define shptr_ISGONE(sh_ptr) ( sh_ptr ? ( shptr_ptr(sh_ptr) ? false : true ) : true )
 
 #define shptr_REF(sh_ptr)        ( sh_ptr ? (sh_ptr = shptr_ref(sh_ptr))        : NULL )
 #define shptr_UNREF(sh_ptr)      ( sh_ptr ? (sh_ptr = shptr_unref(sh_ptr))      : NULL )

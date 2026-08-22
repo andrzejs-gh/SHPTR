@@ -113,7 +113,7 @@ int main(void)
 		thrd_join(T[i], NULL);
 
 	shptr_UNREF(p);
-	if ( !p )
+	if ( shptr_ISGONE(p) )
 		puts("OK, object has been destroyed and shared ptr is gone");
 	else
 	{
