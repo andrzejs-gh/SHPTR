@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <assert.h>
 
+#define LIMIT 1000000
+
 typedef struct
 {
 	char c;
@@ -38,7 +40,7 @@ int owning_worker(void* arg)
 
 	printf("Owning worker [ %d ] started.\n", id);
 
-	for ( size_t i = 0; i < 1000000; i++)
+	for ( size_t i = 0; i < LIMIT; i++)
 	{
 		shptr* strong_ref = shptr_REF(worker_strong_ref);
 		shptr* weak_ref = shptr_REF_WEAK(worker_strong_ref);
@@ -49,7 +51,7 @@ int owning_worker(void* arg)
 		shptr_UNREF(strong_ref);
 		shptr_UNREF_WEAK(weak_ref);
 	}
-
+	//!worker_strong_ref ? assert(false) : worker_strong_ref;
 	shptr_UNREF(worker_strong_ref);
 	return 0;
 }
@@ -63,56 +65,52 @@ int observer_worker(void* arg)
 
 	printf("Observer worker [ %d ] started.\n", id);
 
-	for ( size_t i = 0; i < 1000000; i++)
+	for ( size_t i = 0; i < LIMIT; i++)
 	{
 		shptr* strong_ref = shptr_REF(worker_weak_ref);
 		shptr* weak_ref = shptr_REF_WEAK(worker_weak_ref);
 
-		switch ( i % 3 )
-		{
-			case 0: shptr_SET_DTOR(worker_weak_ref, NULL); 	 break;
-			case 1: shptr_SET_DTOR(worker_weak_ref, dtor); 	 break;
-			case 2: shptr_SET_DTOR(worker_weak_ref, alt_dtor); break;
-		}
+		// switch ( i % 3 )
+		// {
+		// 	case 0: shptr_SET_DTOR(worker_weak_ref, NULL); 	 break;
+		// 	case 1: shptr_SET_DTOR(worker_weak_ref, dtor); 	 break;
+		// 	case 2: shptr_SET_DTOR(worker_weak_ref, alt_dtor); break;
+		// }
 
 		shptr_UNREF(strong_ref);
 		shptr_UNREF_WEAK(weak_ref);
 	}
-
+	!worker_weak_ref ? puts("WARNING! worker_weak_ref is NULL") : 1;
 	shptr_UNREF_WEAK(worker_weak_ref);
 	return 0;
 }
 
-void underflow_test(void)
-{
-	shptr* p = shptr_INIT(some_t, dtor);
-	if ( !p ){ puts("shptr_INIT failure in underflow test."); assert(false); }
-	shptr_VAL(p, some_t) = (some_t){'a', -33, 0.1234};
-
-	shptr_UNREF(p);
-	printf("strong = %zu, weak = %zu \n", shptr_STRONG_COUNT(p), shptr_WEAK_COUNT(p));
-	return;
-	//shptr_REF_WEAK(p);
-
-	for ( size_t i = 0; i < 100; i++ )
-	{
-		shptr_UNREF(p);
-		//shptr_UNREF_WEAK(p);
-		// p ? printf("strong = %zu \n", shptr_STRONG_COUNT(p)) : puts("dead") ;
-		// p ? printf("weak = %zu \n", shptr_WEAK_COUNT(p)) : puts("dead") ;
-		//if ( !p ) puts("p is DEAD");
-	}
-
-	//assert(false);
-}
-
 int main(void)
 {
+
+
 	size_t strong, weak;
 
 	shptr* p = shptr_INIT(some_t, dtor);
 	if ( !p ){ puts("shptr_INIT failure."); return -1; }
 	shptr_VAL(p, some_t) = (some_t){'a', -33, 0.1234};
+
+	// shptr* weak_ref = shptr_REF_WEAK(p);
+	// shptr* c = weak_ref;
+	// shptr* cc = weak_ref;
+	// strong = shptr_STRONG_COUNT(weak_ref);
+	// weak = shptr_WEAK_COUNT(weak_ref);
+	// printf("strong = %zu, weak = %zu \n", strong, weak);
+ //
+	// //shptr_UNREF_WEAK(p);
+	// shptr_UNREF_WEAK(weak_ref); shptr_UNREF_WEAK(c); shptr_UNREF_WEAK(cc);
+ //
+	// strong = shptr_STRONG_COUNT(p);
+	// weak = shptr_WEAK_COUNT(p);
+	// printf("strong = %zu, weak = %zu \n", strong, weak);
+ //
+	// shptr_UNREF(p);
+	// return 0;
 
 	thrd_t T[4];
 	thrd_create(&T[0], owning_worker, shptr_REF(p));
@@ -136,9 +134,11 @@ int main(void)
 	if ( shptr_ISGONE(weak_reference) )//&& shptr_ISNULL(p) )
 	{
 		puts("OK, object has been destroyed");
-		size_t strong = shptr_STRONG_COUNT(weak_reference);
-		size_t weak = shptr_WEAK_COUNT(weak_reference);
+		//for (size_t i = 0; i < 100; i++){
+		strong = shptr_STRONG_COUNT(weak_reference);
+		weak = shptr_WEAK_COUNT(weak_reference);
 		printf("strong = %zu, weak = %zu \n", strong, weak);
+		//}
 
 		shptr_UNREF_WEAK(weak_reference);
 		if ( weak_reference )
