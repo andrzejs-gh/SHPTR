@@ -31,9 +31,10 @@
 #define shptr_ISNULL(sh_ptr) ( sh_ptr ? false : true )
 #define shptr_ISGONE(sh_ptr) ( sh_ptr ? ( shptr_ptr(sh_ptr) ? false : true ) : true )
 
-#define shptr_REF(sh_ptr)        ( sh_ptr ? (sh_ptr = shptr_ref(sh_ptr))        : NULL )
+#define shptr_REF(sh_ptr)        ( sh_ptr ? shptr_ref(sh_ptr)        : NULL )
+#define shptr_REF_WEAK(sh_ptr)   ( sh_ptr ? shptr_ref_weak(sh_ptr)   : NULL )
+
 #define shptr_UNREF(sh_ptr)      ( sh_ptr ? (sh_ptr = shptr_unref(sh_ptr))      : NULL )
-#define shptr_REF_WEAK(sh_ptr)   ( sh_ptr ? (sh_ptr = shptr_ref_weak(sh_ptr))   : NULL )
 #define shptr_UNREF_WEAK(sh_ptr) ( sh_ptr ? (sh_ptr = shptr_unref_weak(sh_ptr)) : NULL )
 
 typedef void* _Atomic atomic_ptr;
