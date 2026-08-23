@@ -37,7 +37,7 @@
 #define shptr_UNREF_WEAK(sh_ptr) ( sh_ptr ? (sh_ptr = shptr_unref_weak(sh_ptr)) : NULL )
 
 typedef void* _Atomic atomic_ptr;
-typedef void (* _Atomic atomic_fptr)(const void* ptr);
+typedef void (* _Atomic atomic_fptr)(void* ptr);
 
 typedef struct shptr shptr;
 
@@ -48,8 +48,8 @@ size_t shptr_strong(shptr* sh_ptr);
 size_t shptr_weak(shptr* sh_ptr);
 shptr* shptr_ref(shptr* sh_ptr);
 shptr* shptr_ref_weak(shptr* sh_ptr);
-shptr* shptr_unref(shptr* sh_ptr);
-shptr* shptr_unref_weak(shptr* sh_ptr);
+void* shptr_unref(shptr* sh_ptr);
+void* shptr_unref_weak(shptr* sh_ptr);
 
 
 #endif

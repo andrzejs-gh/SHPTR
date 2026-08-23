@@ -10,7 +10,7 @@ typedef struct shptr
 
 } shptr;
 
-static inline void shptr_dummy_destructor(const void* ptr)
+static inline void shptr_dummy_destructor(void* ptr)
 {
     return;
 }
@@ -97,7 +97,7 @@ shptr* shptr_ref(shptr* sh_ptr)
     do
     {
         if ( strong_refcount == 0 ) // ANOTHER thread set the value to 0
-            return sh_ptr;          // or it was initialy 0
+            return NULL;            // or it was initialy 0
 
     } while
       (
@@ -119,7 +119,7 @@ shptr* shptr_ref_weak(shptr* sh_ptr)
     return sh_ptr;
 }
 
-shptr* shptr_unref(shptr* sh_ptr)
+void* shptr_unref(shptr* sh_ptr)
 {
     size_t strong_refcount = sh_ptr->strong_refcount;
     // if (x = expected)
@@ -129,7 +129,7 @@ shptr* shptr_unref(shptr* sh_ptr)
     do
     {
         if ( strong_refcount == 0 ) // ANOTHER thread set the value to 0
-            return sh_ptr;          // or it was initialy 0
+            return NULL;            // or it was initialy 0
 
     } while
       (
@@ -149,14 +149,14 @@ shptr* shptr_unref(shptr* sh_ptr)
         return shptr_UNREF_WEAK(sh_ptr); // take off the implicit weak reference
     }
 
-    return sh_ptr;
+    return NULL;
 }
 
-shptr* shptr_unref_weak(shptr* sh_ptr)
+void* shptr_unref_weak(shptr* sh_ptr)
 {
     size_t weak_refcount = sh_ptr->weak_refcount;
     if ( weak_refcount == 1 && sh_ptr->strong_refcount > 0 )
-        return sh_ptr;
+        return NULL;
 
     do
     {
@@ -179,5 +179,5 @@ shptr* shptr_unref_weak(shptr* sh_ptr)
         return NULL;
     }
 
-    return sh_ptr;
+    return NULL;
 }
