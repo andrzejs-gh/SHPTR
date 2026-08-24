@@ -9,8 +9,8 @@ typedef struct shptr
 {
     atomic_size_t strong_refcount;
     atomic_size_t weak_refcount;
-    atomic_fptr destructor;
-    atomic_ptr ptr;
+    dtor_ptr destructor;
+    void* ptr;
 
 } shptr;
 
@@ -19,7 +19,7 @@ static inline void shptr_dummy_destructor(void* ptr)
     return;
 }
 
-shptr* shptr_init(size_t obj_size, size_t alignment, atomic_fptr destructor)
+shptr* shptr_init(size_t obj_size, size_t alignment, dtor_ptr destructor)
 {
     if ( !obj_size )
         return NULL;
@@ -69,7 +69,7 @@ void* shptr_ptr(shptr* sh_ptr)
     return sh_ptr->ptr;
 }
 
-shptr* shptr_set_destructor(shptr* sh_ptr, atomic_fptr destructor)
+shptr* shptr_set_destructor(shptr* sh_ptr, dtor_ptr destructor)
 {
     sh_ptr->destructor = (destructor ? destructor : shptr_dummy_destructor);
 
