@@ -70,12 +70,12 @@ int observer_worker(void* arg)
 		shptr* strong_ref = shptr_REF(worker_weak_ref);
 		shptr* weak_ref = shptr_REF_WEAK(worker_weak_ref);
 
-		// switch ( i % 3 )
-		// {
-		// 	case 0: shptr_SET_DTOR(worker_weak_ref, NULL); 	 break;
-		// 	case 1: shptr_SET_DTOR(worker_weak_ref, dtor); 	 break;
-		// 	case 2: shptr_SET_DTOR(worker_weak_ref, alt_dtor); break;
-		// }
+		switch ( i % 3 )
+		{
+			case 0: shptr_SET_DTOR(worker_weak_ref, NULL); 	 break;
+			case 1: shptr_SET_DTOR(worker_weak_ref, dtor); 	 break;
+			case 2: shptr_SET_DTOR(worker_weak_ref, alt_dtor); break;
+		}
 
 		shptr_UNREF(strong_ref);
 		shptr_UNREF_WEAK(weak_ref);
@@ -94,23 +94,6 @@ int main(void)
 	shptr* p = shptr_INIT(some_t, dtor);
 	if ( !p ){ puts("shptr_INIT failure."); return -1; }
 	shptr_VAL(p, some_t) = (some_t){'a', -33, 0.1234};
-
-	// shptr* weak_ref = shptr_REF_WEAK(p);
-	// shptr* c = weak_ref;
-	// shptr* cc = weak_ref;
-	// strong = shptr_STRONG_COUNT(weak_ref);
-	// weak = shptr_WEAK_COUNT(weak_ref);
-	// printf("strong = %zu, weak = %zu \n", strong, weak);
- //
-	// //shptr_UNREF_WEAK(p);
-	// shptr_UNREF_WEAK(weak_ref); shptr_UNREF_WEAK(c); shptr_UNREF_WEAK(cc);
- //
-	// strong = shptr_STRONG_COUNT(p);
-	// weak = shptr_WEAK_COUNT(p);
-	// printf("strong = %zu, weak = %zu \n", strong, weak);
- //
-	// shptr_UNREF(p);
-	// return 0;
 
 	thrd_t T[4];
 	thrd_create(&T[0], owning_worker, shptr_REF(p));

@@ -1,5 +1,9 @@
-#include "shptr.h"
+#include <stdint.h>
 #include <stddef.h>
+#include <stdlib.h>
+#include <stdatomic.h>
+#include <stdbool.h>
+#include "shptr.h"
 
 typedef struct shptr
 {

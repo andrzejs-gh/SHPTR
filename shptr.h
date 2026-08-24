@@ -2,8 +2,6 @@
 #define SHPTR_LIB_H
 
 #include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
 #include <stdatomic.h>
 #include <stdbool.h>
 
