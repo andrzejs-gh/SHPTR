@@ -35,13 +35,7 @@
 #define shptr_WEAK_COUNT(sh_ptr)   (sh_ptr ? shptr_weak(sh_ptr)   : SIZE_MAX)
 
 #define shptr_ISNULL(sh_ptr) ( sh_ptr == NULL )
-#define shptr_ISGONE(sh_ptr) (                                              \
-                                sh_ptr ?                                    \
-                                (                                           \
-                                    shptr_strong(sh_ptr) ? false : true     \
-                                )                                           \
-                                : true                                      \
-                             )
+#define shptr_ISGONE(sh_ptr) ( sh_ptr == NULL || shptr_strong(sh_ptr) == 0 )
 
 #define shptr_REF(sh_ptr)        ( sh_ptr ? shptr_ref(sh_ptr)        : NULL )
 #define shptr_REF_WEAK(sh_ptr)   ( sh_ptr ? shptr_ref_weak(sh_ptr)   : NULL )
@@ -50,11 +44,14 @@
 #define shptr_UNREF_WEAK(sh_ptr) ( sh_ptr ? (sh_ptr = shptr_unref_weak(sh_ptr)) : NULL )
 
 #define IS_REF_ACQUIRED(sh_ptr) (shptr_REF(sh_ptr) && shptr_strong(sh_ptr) > 0)
-#define shptr_REF_TRY(sh_ptr) (                                                   \
-                                sh_ptr ?                                          \
-                                ( IS_REF_ACQUIRED(sh_ptr) ? sh_ptr : NULL )       \
-                                : NULL                                            \
-                              )
+#define shptr_REF_TRY_(sh_ptr)                   \
+(                                                \
+    sh_ptr ?                                     \
+    (                                            \
+        IS_REF_ACQUIRED(sh_ptr) ? sh_ptr : NULL  \
+    )                                            \
+    : NULL                                       \
+)
 
 typedef void (*dtor_ptr)(void* ptr);
 
