@@ -35,7 +35,13 @@
 #define shptr_WEAK_COUNT(sh_ptr)   (sh_ptr ? shptr_weak(sh_ptr)   : SIZE_MAX)
 
 #define shptr_ISNULL(sh_ptr) ( sh_ptr == NULL )
-#define shptr_ISGONE(sh_ptr) ( sh_ptr ? ( shptr_ptr(sh_ptr) ? false : true ) : true )
+#define shptr_ISGONE(sh_ptr) (                                              \
+                                sh_ptr ?                                    \
+                                (                                           \
+                                    !shptr_strong(sh_ptr) ? false : true    \
+                                )                                           \
+                                : true                                      \
+                             )
 
 #define shptr_REF(sh_ptr)        ( sh_ptr ? shptr_ref(sh_ptr)        : NULL )
 #define shptr_REF_WEAK(sh_ptr)   ( sh_ptr ? shptr_ref_weak(sh_ptr)   : NULL )
@@ -43,7 +49,7 @@
 #define shptr_UNREF(sh_ptr)      ( sh_ptr ? (sh_ptr = shptr_unref(sh_ptr))      : NULL )
 #define shptr_UNREF_WEAK(sh_ptr) ( sh_ptr ? (sh_ptr = shptr_unref_weak(sh_ptr)) : NULL )
 
-#define IS_REF_ACQUIRED(sh_ptr) (shptr_REF(sh_ptr) && !shptr_ISGONE(sh_ptr))
+#define IS_REF_ACQUIRED(sh_ptr) (shptr_REF(sh_ptr) && shptr_strong(sh_ptr) > 0)
 #define shptr_REF_TRY(sh_ptr) (                                                   \
                                 sh_ptr ?                                          \
                                 ( IS_REF_ACQUIRED(sh_ptr) ? sh_ptr : NULL )       \
@@ -64,6 +70,5 @@ shptr* shptr_ref(shptr* sh_ptr);
 shptr* shptr_ref_weak(shptr* sh_ptr);
 void* shptr_unref(shptr* sh_ptr);
 void* shptr_unref_weak(shptr* sh_ptr);
-
 
 #endif

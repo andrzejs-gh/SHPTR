@@ -39,14 +39,6 @@ shptr* shptr_init(size_t obj_size, size_t alignment, dtor_ptr destructor)
         uintptr_t ctrl_block_end = (uintptr_t)ctrl_block + sizeof *ctrl_block;
         padding = ctrl_block_end % alignment;
         padding = ( padding ? alignment - padding : 0 );
-
-        shptr* p = realloc(ctrl_block, sizeof *ctrl_block + padding + obj_size);
-        if ( !p )
-        {
-            free(ctrl_block);
-            return NULL;
-        }
-        ctrl_block = p;
     }
 
     *ctrl_block = (shptr){
