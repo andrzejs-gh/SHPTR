@@ -49,6 +49,7 @@ typedef struct shptr shptr;
 
 shptr* shptr_init(size_t obj_size, size_t alignment, dtor_ptr destructor);
 void* shptr_ptr(shptr* sh_ptr);
+dtor_ptr* shptr_destructor_field(shptr* sh_ptr);
 void* shptr_set_destructor(shptr* sh_ptr, dtor_ptr destructor);
 size_t shptr_strong(shptr* sh_ptr);
 size_t shptr_weak(shptr* sh_ptr);
