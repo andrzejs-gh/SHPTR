@@ -43,6 +43,13 @@
 #define shptr_UNREF(sh_ptr)      ( sh_ptr ? (sh_ptr = shptr_unref(sh_ptr))      : NULL )
 #define shptr_UNREF_WEAK(sh_ptr) ( sh_ptr ? (sh_ptr = shptr_unref_weak(sh_ptr)) : NULL )
 
+#define IS_REF_ACQUIRED(sh_ptr) (shptr_REF(sh_ptr) && !shptr_ISGONE(sh_ptr))
+#define shptr_REF_TRY(sh_ptr) (                                                   \
+                                sh_ptr ?                                          \
+                                ( IS_REF_ACQUIRED(sh_ptr) ? sh_ptr : NULL )       \
+                                : NULL                                            \
+                              )
+
 typedef void (*dtor_ptr)(void* ptr);
 
 typedef struct shptr shptr;
