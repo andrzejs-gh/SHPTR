@@ -38,7 +38,7 @@
 #define shptr_ISGONE(sh_ptr) (                                              \
                                 sh_ptr ?                                    \
                                 (                                           \
-                                    !shptr_strong(sh_ptr) ? false : true    \
+                                    shptr_strong(sh_ptr) ? false : true     \
                                 )                                           \
                                 : true                                      \
                              )
