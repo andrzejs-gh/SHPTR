@@ -29,6 +29,7 @@
                    (sh_ptr ?                                                   \
                    shptr_set_destructor(sh_ptr, destructor_ptr) :              \
                    NULL)
+#define shptr_DTOR(sh_ptr) (*shptr_destructor_field(sh_ptr))
 
 #define shptr_STRONG_COUNT(sh_ptr) (sh_ptr ? shptr_strong(sh_ptr) : SIZE_MAX)
 #define shptr_WEAK_COUNT(sh_ptr)   (sh_ptr ? shptr_weak(sh_ptr)   : SIZE_MAX)
@@ -48,7 +49,7 @@ typedef struct shptr shptr;
 
 shptr* shptr_init(size_t obj_size, size_t alignment, dtor_ptr destructor);
 void* shptr_ptr(shptr* sh_ptr);
-shptr* shptr_set_destructor(shptr* sh_ptr, dtor_ptr destructor);
+void* shptr_set_destructor(shptr* sh_ptr, dtor_ptr destructor);
 size_t shptr_strong(shptr* sh_ptr);
 size_t shptr_weak(shptr* sh_ptr);
 shptr* shptr_ref(shptr* sh_ptr);

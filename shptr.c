@@ -69,9 +69,14 @@ void* shptr_ptr(shptr* sh_ptr)
     return sh_ptr->ptr;
 }
 
-shptr* shptr_set_destructor(shptr* sh_ptr, dtor_ptr destructor)
+dtor_ptr* shptr_destructor_field(shptr* sh_ptr)
 {
-    sh_ptr->destructor = (destructor ? destructor : shptr_dummy_destructor);
+    return &sh_ptr->destructor;
+}
+
+void* shptr_set_destructor(shptr* sh_ptr, dtor_ptr destructor)
+{
+    sh_ptr->destructor = destructor;
 
     return sh_ptr->ptr;
 }
