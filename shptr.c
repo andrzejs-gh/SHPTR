@@ -14,11 +14,6 @@ typedef struct shptr
 
 } shptr;
 
-static inline void shptr_dummy_destructor(void* ptr)
-{
-    return;
-}
-
 shptr* shptr_init(size_t obj_size, size_t alignment, dtor_ptr destructor)
 {
     if ( !obj_size )
@@ -57,7 +52,7 @@ shptr* shptr_init(size_t obj_size, size_t alignment, dtor_ptr destructor)
     *ctrl_block = (shptr){
         .strong_refcount = 1,
         .weak_refcount = 1,
-        .destructor = (destructor ? destructor : shptr_dummy_destructor),
+        .destructor = (destructor ? destructor : NULL),
         .ptr = (char*)ctrl_block + sizeof *ctrl_block + padding
     };
 
@@ -163,7 +158,9 @@ void* shptr_unref(shptr* sh_ptr)
 
     if ( strong_refcount == 1 ) // THIS thread set the value to 0
     {
-        sh_ptr->destructor(sh_ptr->ptr);
+        if ( sh_ptr->destructor )
+            sh_ptr->destructor(sh_ptr->ptr);
+
         sh_ptr->ptr = NULL;
 
         return shptr_unref_weak(sh_ptr); // take off the implicit weak reference
