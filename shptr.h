@@ -5,8 +5,15 @@
 #include <stdatomic.h>
 #include <stdbool.h>
 
-#define shptr_INIT(type, destructor_ptr) \
-                   shptr_init(sizeof(type), _Alignof(type), destructor_ptr)
+#define shptr_INIT_DTOR(type, destructor_ptr)                                     \
+                        shptr_init(sizeof(type), _Alignof(type), destructor_ptr)
+#define shptr_INIT_NODTOR(type)                                                   \
+                        shptr_init(sizeof(type), _Alignof(type), NULL)
+
+#define INIT_MACRO_SELECTOR(arg1, arg2, arg3, ...) arg3
+#define shptr_INIT(...)                                                           \
+        INIT_MACRO_SELECTOR(__VA_ARGS__, shptr_INIT_DTOR, shptr_INIT_NODTOR)      \
+        (__VA_ARGS__)
 
 #define shptr_VOID_PTR(sh_ptr)        (sh_ptr ? shptr_ptr(sh_ptr)        : NULL)
 #define shptr_TYPED_PTR(sh_ptr, type) (sh_ptr ? (type*)shptr_ptr(sh_ptr) : NULL)
@@ -20,7 +27,7 @@
 
 #define shptr_SET_DTOR(sh_ptr, destructor_ptr)                                 \
                    (sh_ptr ?                                                   \
-                   shptr_set_destructor(sh_ptr, destructor_ptr) : \
+                   shptr_set_destructor(sh_ptr, destructor_ptr) :              \
                    NULL)
 
 #define shptr_STRONG_COUNT(sh_ptr) (sh_ptr ? shptr_strong(sh_ptr) : SIZE_MAX)

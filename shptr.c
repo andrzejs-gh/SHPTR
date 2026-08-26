@@ -174,7 +174,7 @@ void* shptr_unref_weak(shptr* sh_ptr)
     do
     {
         if ( weak_refcount == 0 ) // ANOTHER thread has set the value to 0
-            return NULL;          // or it was initialy 0
+            return NULL;
 
     } while
       (
