@@ -44,7 +44,7 @@
 #define shptr_UNREF_WEAK(sh_ptr) ( sh_ptr ? (sh_ptr = shptr_unref_weak(sh_ptr)) : NULL )
 
 #define IS_REF_ACQUIRED(sh_ptr) (shptr_REF(sh_ptr) && shptr_strong(sh_ptr) > 0)
-#define shptr_REF_TRY_(sh_ptr)                   \
+#define shptr_REF_TRY(sh_ptr)                    \
 (                                                \
     sh_ptr ?                                     \
     (                                            \
