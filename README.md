@@ -14,7 +14,7 @@
 
 Universal and easy to use **thread-safe** and **lock-free** shared pointer implemented in C11. 
 
-- the control block `shptr` and the object are allocated at once and live together as a single block in memory `[ctrl] [padding (if needed)] [obj]` (objects/types that are over-aligned may cause relatively large padding, see [shptr_INIT](#-shptr_init-))
+- the control block `shptr` and the object are allocated at once and live together as a single block in memory `[ctrl] [padding (if needed)] [obj]`
 - `shptr` supports both **strong** (owning) and **weak** (non-owning) references
 - the initialization adds `1` **strong** reference to the strong reference count, and `1` (implicit) **weak** reference to the weak reference count
 - the implicit **weak** reference is taken off when **strong** reference count hits `0`
