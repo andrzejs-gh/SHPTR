@@ -40,7 +40,7 @@ void dtor(void* obj); // the destructor is passed pointer to the object
 1. To access and/or modify the object, a caller must own a **strong reference**.
 2. To access the control block, a caller must own a **weak reference**.
 3. A **reference owner**, strong or weak, must always release **the reference**.
-4. After releasing a reference with [shptr_UNREF](#-shptr_unref-) / [shptr_UNREF_WEAK](#-shptr_unref_weak-), it is set to `NULL` and must not be used afterwards. 
+4. After a reference is released with [shptr_UNREF](#-shptr_unref-) / [shptr_UNREF_WEAK](#-shptr_unref_weak-), it is set to `NULL` and must not be used afterwards. 
 5. Never use [shptr_UNREF](#-shptr_unref-) on a **weak reference** or [shptr_UNREF_WEAK](#-shptr_unref_weak-) on a **strong reference**.
 6. Never manually copy a reference, always use [shptr_REF](#-shptr_ref-) / [shptr_REF_WEAK](#-shptr_ref_weak-) or [shptr_REF_TRY](#-shptr_ref_try-).
 7. Always check whether [shptr_REF_TRY](#-shptr_ref_try-) succeeded in acquiring a **strong reference**, if not, it returns `NULL`-reference.
