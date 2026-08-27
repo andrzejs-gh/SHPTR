@@ -117,7 +117,7 @@ shptr* shptr_init(size_t obj_size, size_t alignment, dtor_ptr destructor)
     *ctrl_block = (shptr){
         .strong_refcount = 1,
         .weak_refcount = 1,
-        .destructor = (destructor ? destructor : NULL),
+        .destructor = destructor,
         .ptr = (char*)ctrl_block + sizeof *ctrl_block + padding
     };
 
