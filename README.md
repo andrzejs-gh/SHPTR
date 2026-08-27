@@ -43,7 +43,7 @@ void dtor(void* obj); // the destructor is passed pointer to the object
 4. After a reference is released with [shptr_UNREF](#-shptr_unref-) / [shptr_UNREF_WEAK](#-shptr_unref_weak-), it is set to `NULL` and must not be used afterwards. 
 5. Never use [shptr_UNREF](#-shptr_unref-) on a **weak reference** or [shptr_UNREF_WEAK](#-shptr_unref_weak-) on a **strong reference**.
 6. Never manually copy a reference, always use [shptr_REF](#-shptr_ref-) / [shptr_REF_WEAK](#-shptr_ref_weak-) or [shptr_REF_TRY](#-shptr_ref_try-).
-7. Always check whether [shptr_REF_TRY](#-shptr_ref_try-) succeeded in acquiring a **strong reference**, if not, it returns `NULL`-reference.
+7. Always check whether [shptr_REF_TRY](#-shptr_ref_try-) succeeded in acquiring a **strong reference**, if not, it returns a `NULL`-reference.
 
 ---
 
