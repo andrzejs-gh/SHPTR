@@ -194,7 +194,11 @@ void test(void)
     shptr* p = shptr_INIT(int);             // shptr for int obj is initialized
                                             // without a destructor
                                             // strong_refs = 1, weak_refs = 1
-    if ( !p ) { assert(false); }        // ...in case of a failed allocation
+    if ( !p )
+    {
+        puts("ERROR, shptr_INIT: allocation failure");
+        assert(false);
+    }        // ...in case of a failed allocation
     shptr_VAL(p, int) = -33; // obj value is set to -33
 
     int* raw_typed_ptr = shptr_PTR(p, int); // getting raw typed ptr
