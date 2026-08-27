@@ -278,7 +278,8 @@ void* ptr = shptr_PTR(ref);
 int* ptr = shptr_PTR(ref, int)
 ```
 
-Returns raw pointer to the object. If a type name is passed, it returns pointer of that type, if no type name is passed, it reurns `void*`. If the reference is `NULL`, the macro will return `NULL`.
+Returns raw pointer to the object. If a type name is passed, it returns pointer of that type, if no type name is passed, it reurns `void*`. 
+If the object has been destroyed, `NULL` is returned. If the passed reference is `NULL`, the macro will also return `NULL`.
 
 
 ### Arguments:
@@ -311,7 +312,7 @@ shptr_VAL(ref, int) = -11;                          // setting values
 shptr_VAL(ref, struct s) = (struct s){-11, 0.1234};
 ```
 
-Macro that performs `*(type*)` on the raw object pointer. There is no safety mechanism in case a `NULL`-reference is passed, so passing a dead reference will result in a crash.
+Macro that performs `*(type*)` on the raw object pointer. There is no safety mechanism in case a `NULL`-reference is passed, so passing a dead reference will result in a crash. This is also the case if a caller doesn't own a **strong reference**, and the object has been destroyed.
 
 ### Arguments:
 - `shptr*` reference
