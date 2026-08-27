@@ -181,7 +181,7 @@ void* shptr_unref_weak(shptr* sh_ptr)
       );
 
     // this thread set the value to 0 and strong_refcount is also 0,
-    // so this thread must free the control block
+    // so this thread must free the block
     if ( weak_refcount == 1 && sh_ptr->strong_refcount == 0 )
     {
         free(sh_ptr);

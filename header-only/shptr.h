@@ -25,14 +25,14 @@
 
 #define shptr_VAL(sh_ptr, type) (*(type*)shptr_ptr(sh_ptr))
 
-#define shptr_SET_DTOR(sh_ptr, destructor_ptr)                 \
-        (                                                      \
-            sh_ptr ?                                           \
-            (                                                  \
-                shptr_set_destructor(sh_ptr, destructor_ptr)   \
-            )                                                  \
-            : NULL                                             \
-        )
+#define shptr_SET_DTOR(sh_ptr, destructor_ptr)         \
+(                                                      \
+    sh_ptr ?                                           \
+    (                                                  \
+        shptr_set_destructor(sh_ptr, destructor_ptr)   \
+    )                                                  \
+    : NULL                                             \
+)
 
 #define shptr_DTOR(sh_ptr) (*shptr_destructor_field(sh_ptr))
 

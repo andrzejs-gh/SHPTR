@@ -4,13 +4,18 @@
 #include <assert.h>
 #include <stdatomic.h>
 #include <stdbool.h>
-#include "../shptr.h"
 
-int* strong_counts;
-int* weak_counts;
-atomic_size_t strong_counts_index = 0;
-atomic_size_t weak_counts_index = 0;
+#define SHPTR_IMPLEMENTATION
+#include "../header-only/shptr.h"
+
 atomic_bool is_destroyed = false;
+
+typedef struct
+{
+    atomic_size_t strong;
+    atomic_size_t weak;
+
+} total_ref_made;
 
 void borrowing_foo(void* ptr)
 {
@@ -34,10 +39,6 @@ void owning_foo(shptr* sh_ptr)
     }
 
     puts("owning_foo: reference released");
-    // printf(
-    //         "refcounts: strong = %zu, weak = %zu \n",
-    //         shptr_STRONG_COUNT(sh_ptr), shptr_WEAK_COUNT(sh_ptr)
-    //       );
     puts("owning_foo RETURNS");
 }
 
@@ -55,16 +56,12 @@ void another_owning_foo(shptr* ref)
     }
 
     puts("another_owning_foo: reference released");
-    // printf(
-    //         "refcounts: strong = %zu, weak = %zu \n",
-    //         shptr_STRONG_COUNT(ref), shptr_WEAK_COUNT(ref)
-    //       );
     puts("another_owning_foo RETURNS");
 }
 
-void non_owning_foo(shptr* weak_ref)
+void observer_foo(shptr* weak_ref)
 {
-    puts("non_owning_foo: reference received");
+    puts("observer_foo: reference received");
     printf(
             "refcounts: strong = %zu, weak = %zu \n",
             shptr_STRONG_COUNT(weak_ref), shptr_WEAK_COUNT(weak_ref)
@@ -73,50 +70,58 @@ void non_owning_foo(shptr* weak_ref)
     shptr_UNREF_WEAK(weak_ref);
     if ( weak_ref )
     {
-        puts("ERROR in non_owning_foo: reference is not NULL after UNREF_WEAK");
+        puts("ERROR in observer_foo: reference is not NULL after UNREF_WEAK");
         assert(false);
     }
 
-    puts("non_owning_foo: reference released");
-    // printf(
-    //         "refcounts: strong = %zu, weak = %zu \n",
-    //         shptr_STRONG_COUNT(weak_ref), shptr_WEAK_COUNT(weak_ref)
-    //       );
-    puts("non_owning_foo RETURNS");
+    puts("observer_foo: reference released");
+    puts("observer_foo RETURNS");
 }
 
 void foo_destructor(void* p)
 {
     puts("foo_destructor RUNS");
-    is_destroyed = true;
+    total_ref_made* obj = (total_ref_made*)p;
+
+    printf
+    (
+        "total number of refs made:\n"
+        "strong = %zu, weak = %zu \n",
+        obj->strong, obj->weak
+    );
+
+    puts("foo_destructor RETURNS");
 }
 
 void owning_subworker(shptr* ref)
 {
-    int strong = shptr_STRONG_COUNT(ref);
-    size_t index = strong_counts_index++ % 1000;
-
-    strong_counts[index] = strong;
+    shptr_VAL(ref, total_ref_made).strong++;
 
     shptr_UNREF(ref);
 
     return;
 }
 
-void observer_subworker(shptr* ref)
+void observer_subworker(shptr* weak_ref)
 {
-    int weak = shptr_WEAK_COUNT(ref);
-    size_t index = weak_counts_index++ % 1000;
+    void* acquired = shptr_REF_TRY(weak_ref);
+    if ( acquired )
+    {
+        shptr_VAL(acquired, total_ref_made).weak++;   // adding THIS weak ref
+        shptr_VAL(acquired, total_ref_made).strong++; // adding temp strong ref
 
-    weak_counts[index] = weak;
+        shptr_UNREF(acquired);
+    }
 
-    shptr_UNREF_WEAK(ref);
+    shptr_UNREF_WEAK(weak_ref);
 
     return;
 }
 
 int owning_worker_1(void* strong_ref)
 {
+    shptr_VAL(strong_ref, total_ref_made).strong++; // adding THIS strong ref
+
     for ( size_t i = 0; i < 1000000; i++ )
     {
         switch ( i % 2 )
@@ -132,22 +137,22 @@ int owning_worker_1(void* strong_ref)
 
 int observer_worker_1(void* weak_ref)
 {
+    shptr* acquired = shptr_REF_TRY(weak_ref);
+    if ( acquired )
+    {
+        shptr_VAL(acquired, total_ref_made).weak++;   // adding THIS weak ref
+        shptr_VAL(acquired, total_ref_made).strong++; // adding temp strong ref
+
+        shptr_UNREF(acquired);
+    }
+
     for ( size_t i = 0; i < 1000000; i++ )
     {
         observer_subworker(shptr_REF_WEAK(weak_ref));
 
-        shptr* acquired = shptr_REF_TRY(weak_ref);
+        acquired = shptr_REF_TRY(weak_ref);
         if ( acquired )
-        {
-            // puts("acquired");
             owning_subworker(acquired);
-        }
-        else
-        {
-            // printf("denied, is_destroyed = %d\n", is_destroyed);
-            // printf("denied, strong = %zu \n", shptr_STRONG_COUNT(weak_ref));
-            // fflush(stdout);
-        }
     }
 
     shptr_UNREF_WEAK(weak_ref);
@@ -156,6 +161,8 @@ int observer_worker_1(void* weak_ref)
 
 int owning_worker_0(void* strong_ref)
 {
+    shptr_VAL(strong_ref, total_ref_made).strong++; // adding THIS strong ref
+
     for ( size_t i = 0; i < 1000000; i++ )
     {
         switch ( i % 2 )
@@ -171,11 +178,20 @@ int owning_worker_0(void* strong_ref)
 
 int observer_worker_0(void* weak_ref)
 {
+    shptr* acquired = shptr_REF_TRY(weak_ref);
+    if ( acquired )
+    {
+        shptr_VAL(acquired, total_ref_made).weak++;   // adding THIS weak ref
+        shptr_VAL(acquired, total_ref_made).strong++; // adding temp strong ref
+
+        shptr_UNREF(acquired);
+    }
+
     for ( size_t i = 0; i < 1000000; i++ )
     {
         observer_subworker(shptr_REF_WEAK(weak_ref));
 
-        shptr* acquired = shptr_REF_TRY(weak_ref);
+        acquired = shptr_REF_TRY(weak_ref);
         if ( acquired )
             owning_subworker(acquired);
     }
@@ -186,28 +202,17 @@ int observer_worker_0(void* weak_ref)
 
 void test(void)
 {
-    strong_counts = malloc( 1000 * sizeof(int) );
-    weak_counts = malloc( 1000 * sizeof(int) );
-    if ( !strong_counts || !weak_counts )
-        assert(false);
-
-    shptr* p = shptr_INIT(int);             // shptr for int obj is initialized
-                                            // without a destructor
-                                            // strong_refs = 1, weak_refs = 1
+    shptr* p = shptr_INIT(total_ref_made);
     if ( !p )
     {
         puts("ERROR, shptr_INIT: allocation failure");
         assert(false);
     }        // ...in case of a failed allocation
-    shptr_VAL(p, int) = -33; // obj value is set to -33
-
-    int* raw_typed_ptr = shptr_PTR(p, int); // getting raw typed ptr
-    void* raw_void_ptr = shptr_PTR(p);      // getting raw void ptr
-    *raw_typed_ptr = -22;                   // setting new value
-
-    int value = shptr_VAL(p, int); // getting value
-    shptr_VAL(p, int) = -44;       // setting new value
-    *shptr_PTR(p, int) = -55;      // setting new value
+    shptr_VAL(p, total_ref_made) = (total_ref_made)
+                                   {
+                                      shptr_STRONG_COUNT(p),
+                                      shptr_WEAK_COUNT(p)
+                                   };
 
     borrowing_foo(shptr_PTR(p)); // borrowing_functon borrows the raw pointer
 
@@ -225,7 +230,7 @@ void test(void)
 
     /* non-owning functions may own a weak reference and are
     t hen responsible for releasing it */
-    non_owning_foo(shptr_REF_WEAK(p)); // strong = 1, weak = 2
+    observer_foo(shptr_REF_WEAK(p)); // strong = 1, weak = 2
                                        //         v
                                        //         v
                                        // strong = 1, weak = 1
@@ -292,9 +297,6 @@ void test(void)
 int main(void)
 {
     test();
-
-    for ( size_t i = 0; i < 1000; i++ )
-        printf("strong = %d, weak = %d \n", strong_counts[i], weak_counts[i]);
 
     return 0;
 }
