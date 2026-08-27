@@ -10,6 +10,7 @@ int* strong_counts;
 int* weak_counts;
 atomic_size_t strong_counts_index = 0;
 atomic_size_t weak_counts_index = 0;
+atomic_bool is_destroyed = false;
 
 void borrowing_foo(void* ptr)
 {
@@ -87,6 +88,7 @@ void non_owning_foo(shptr* weak_ref)
 void foo_destructor(void* p)
 {
     puts("foo_destructor RUNS");
+    is_destroyed = true;
 }
 
 void owning_subworker(shptr* ref)
@@ -141,7 +143,11 @@ int observer_worker_1(void* weak_ref)
             owning_subworker(acquired);
         }
         else
-            ;// puts("denied");
+        {
+            // printf("denied, is_destroyed = %d\n", is_destroyed);
+            // printf("denied, strong = %zu \n", shptr_STRONG_COUNT(weak_ref));
+            // fflush(stdout);
+        }
     }
 
     shptr_UNREF_WEAK(weak_ref);
