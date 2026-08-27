@@ -80,10 +80,6 @@ size_t shptr_weak(shptr* sh_ptr)
 
 shptr* shptr_ref(shptr* sh_ptr)
 {
-    // if (x = expected)
-    //    x = desired; return TRUE
-    // else
-    //    expected = x; return FALSE
     size_t strong_refcount = sh_ptr->strong_refcount;
 
     do
@@ -129,10 +125,7 @@ shptr* shptr_ref_weak(shptr* sh_ptr)
 void* shptr_unref(shptr* sh_ptr)
 {
     size_t strong_refcount = sh_ptr->strong_refcount;
-    // if (x = expected)
-    //    x = desired; return TRUE
-    // else
-    //    expected = x; return FALSE
+
     do
     {
         if ( strong_refcount == 0 ) // ANOTHER thread set the value to 0
@@ -180,9 +173,9 @@ void* shptr_unref_weak(shptr* sh_ptr)
           )
       );
 
-    // this thread set the value to 0 and strong_refcount is also 0,
+    // this thread set the value to 0
     // so this thread must free the block
-    if ( weak_refcount == 1 && sh_ptr->strong_refcount == 0 )
+    if ( weak_refcount == 1 )
     {
         free(sh_ptr);
         return NULL;

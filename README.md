@@ -12,7 +12,7 @@
 
 ## Description
 
-Universal and easy to use **thread-safe** and **lock-free** shared pointer implemented in C11. 
+Universal and easy to use **thread-safe** shared pointer implemented in C11. 
 
 - the control block `shptr` and the object are allocated at once and live together as a single block in memory `[ctrl] [padding (if needed)] [obj]`
 - `shptr` supports both **strong** (owning) and **weak** (non-owning) references
@@ -39,10 +39,11 @@ void dtor(void* obj); // the destructor is passed pointer to the object
 0. Always check the first **strong reference** returned by [shptr_INIT](#-shptr_init-), if allocation fails, a `NULL`-reference is returned.
 1. To access and/or modify the object, a caller must own a **strong reference**.
 2. To access the control block, a caller must own a **weak reference**.
-3. A reference owner, strong or weak, must always release the reference.
+3. A **reference owner**, strong or weak, must always release **the reference**.
 4. After releasing a reference with [shptr_UNREF](#-shptr_unref-) / [shptr_UNREF_WEAK](#-shptr_unref_weak-), it is set to `NULL` and must not be used afterwards. 
-5. Never manually copy a reference, always use [shptr_REF](#-shptr_ref-) / [shptr_REF_WEAK](#-shptr_ref_weak-) or [shptr_REF_TRY](#-shptr_ref_try-).
-6. Always check whether [shptr_REF_TRY](#-shptr_ref_try-) succeeded in acquiring a **strong reference**, if not, it returns `NULL`-reference.
+5. Never use [shptr_UNREF](#-shptr_unref-) on a **weak reference** or [shptr_UNREF_WEAK](#-shptr_unref_weak-) on a **strong reference**.
+6. Never manually copy a reference, always use [shptr_REF](#-shptr_ref-) / [shptr_REF_WEAK](#-shptr_ref_weak-) or [shptr_REF_TRY](#-shptr_ref_try-).
+7. Always check whether [shptr_REF_TRY](#-shptr_ref_try-) succeeded in acquiring a **strong reference**, if not, it returns `NULL`-reference.
 
 ---
 
@@ -110,7 +111,7 @@ thrd_create(&T[N-1], observer_worker_X, shptr_REF_WEAK(p));
     Because the object is destroyed by the last owner who releases
     a strong reference to it, if we released p now, the object would 
     be destroyed  either by one of the owning workers, or by THIS 
-    function if the workers finished before p is released.
+    function if the workers finished before p was released.
     
     Let's create a new weak reference to ensure the block stays 
     alive in memory, let's release p, and lets wait for the workers 
@@ -652,7 +653,7 @@ if ( shptr_ISGONE(ref) )
 
 ```
 
-Evaluates to `true` if the object has been destroyed, and to `false` if the object is still alive. If the macro is passed a `NULL`-reference, it evaluates to `false`. 
+Evaluates to `true` if the object has been destroyed, and to `false` if the object is still alive. If the macro is passed a `NULL`-reference, it evaluates to `true`. 
 
 ### Arguments:
 - `shptr*` reference

@@ -207,17 +207,15 @@ void test(void)
     {
         puts("ERROR, shptr_INIT: allocation failure");
         assert(false);
-    }        // ...in case of a failed allocation
+    }
     shptr_VAL(p, total_ref_made) = (total_ref_made)
                                    {
                                       shptr_STRONG_COUNT(p),
                                       shptr_WEAK_COUNT(p)
                                    };
 
-    borrowing_foo(shptr_PTR(p)); // borrowing_functon borrows the raw pointer
+    borrowing_foo(shptr_PTR(p));
 
-    /* owning functions must own a strong reference and are
-    r esponsible for releasing it */
     owning_foo(shptr_REF(p));       // strong = 2, weak = 1
                                     //         v
                                     //         v
@@ -228,17 +226,10 @@ void test(void)
                                          //         v
                                          // strong = 1, weak = 1
 
-    /* non-owning functions may own a weak reference and are
-    t hen responsible for releasing it */
     observer_foo(shptr_REF_WEAK(p)); // strong = 1, weak = 2
                                        //         v
                                        //         v
                                        // strong = 1, weak = 1
-
-    /*  --------------------------------------------------------------
-    S uppose there are N workers worki*ng on the object in
-    separate threads.
-    --------------------------------------------------------------  */
 
     shptr_DTOR(p) = foo_destructor; // setting destructor
 
@@ -247,28 +238,10 @@ void test(void)
     thrd_create(&T[1], observer_worker_0, shptr_REF_WEAK(p));
     thrd_create(&T[2], owning_worker_1, shptr_REF(p));
     thrd_create(&T[3], observer_worker_1, shptr_REF_WEAK(p));
-    // ...
-    //thrd_create(&T[N-1], owning_worker_X, shptr_REF(p));
-    //thrd_create(&T[N-1], observer_worker_X, shptr_REF_WEAK(p));
-
-    /*  ---------------------------------------------------------------
-    B ecause the object is destroyed b*y the last owner who releases
-    a strong reference to it, if we released p now, the object would
-    be destroyed  either by one of the owning workers, or by THIS
-    function if the workers finished before p is released.
-
-    Let's create a new weak reference to ensure the block stays
-    alive in memory, let's release p, and lets wait for the workers
-    to finish.
-    ---------------------------------------------------------------  */
 
     shptr* weak_ref = shptr_REF_WEAK(p); // strong >= 1, weak >= 2
 
     shptr_UNREF(p);                      // strong = ?, weak >= 1
-    // shptr_UNREF(p) additionaly
-    // makes p = NULL, a dead
-    // reference is by design
-    // unusable
 
     /* wait for workers to finish */
     for ( size_t i = 0; i < 4; i++ )
