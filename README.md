@@ -14,14 +14,13 @@
 
 Universal and easy to use **thread-safe** and **lock-free** shared pointer implemented in C11. 
 
-- the control block `shptr` and the object are allocated at once and live together as a single block in memory `[ctrl] [padding (if needed)] [obj]`
-- objects/types that are over-aligned may cause relatively large padding, see [shptr_INIT](#-shptr_init-)
+- the control block `shptr` and the object are allocated at once and live together as a single block in memory `[ctrl] [padding (if needed)] [obj]` (objects/types that are over-aligned may cause relatively large padding, see [shptr_INIT](#-shptr_init-))
 - `shptr` supports both **strong** (owning) and **weak** (non-owning) references
 - the initialization adds `1` **strong** reference to the strong reference count, and `1` (implicit) **weak** reference to the weak reference count
 - the implicit **weak** reference is taken off when **strong** reference count hits `0`
 - the object lives as long as there is at least `1` **strong** reference 
 - the entire block lives as long as there is at least `1` **weak** reference
-- `shptr` supports arbitrary custom **destructor** that can be set at initialization and **mutated** (swaped) at any moment, as long as it has the signature:
+- `shptr` supports arbitrary custom **destructor** that can be set at initialization and **modified** (swaped) at any moment, as long as it has the signature:
 ```c
 void dtor(void* obj); // the destructor is passed pointer to the object
 ``` 
@@ -529,13 +528,13 @@ void destructor(void* obj);
 ```
 it is passed the raw pointer to the object when called.
 
-The macro has no safety mechanism in case `NULL`-reference is passed as it performs the dereference of a `shptr` field.
+The macro has no safety mechanism in case `NULL`-reference is passed as it performs the dereference of a pointer to the `shptr` destructor field.
 
 ### Arguments:
 - `shptr*` reference
 
 ### Expands to:
-- `*shptr_destructor_field(ref)`
+- `*(destructor_field_ptr)`
 
 <p align="right">
 <a href="#api">GO TO API ^</a>
