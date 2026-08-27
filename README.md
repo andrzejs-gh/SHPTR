@@ -110,7 +110,7 @@ thrd_create(&T[N-1], observer_worker_X, shptr_REF_WEAK(p));
 /*  ---------------------------------------------------------------
     Because the object is destroyed by the last owner who releases
     a strong reference to it, if we released p now, the object would 
-    be destroyed  either by one of the owning workers, or by THIS 
+    be destroyed either by one of the owning workers, or by THIS 
     function if the workers finished before p was released.
     
     Let's create a new weak reference to ensure the block stays 
