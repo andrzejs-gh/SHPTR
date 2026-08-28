@@ -161,14 +161,14 @@ shptr* shptr_ref(shptr* sh_ptr)
             return sh_ptr;            // or it was initialy 0
 
     } while
-    (
-        !atomic_compare_exchange_weak
-        (
-            &sh_ptr->strong_refcount,
-         &strong_refcount,
-         strong_refcount + 1
-        )
-    );
+      (
+          !atomic_compare_exchange_weak
+          (
+             &sh_ptr->strong_refcount,
+             &strong_refcount,
+             strong_refcount + 1
+          )
+      );
 
     return sh_ptr;
 }
@@ -183,14 +183,14 @@ shptr* shptr_ref_weak(shptr* sh_ptr)
             return sh_ptr;
 
     } while
-    (
-        !atomic_compare_exchange_weak
-        (
+      (
+         !atomic_compare_exchange_weak
+         (
             &sh_ptr->weak_refcount,
-         &weak_refcount,
-         weak_refcount + 1
-        )
-    );
+            &weak_refcount,
+            weak_refcount + 1
+         )
+      );
 
     return sh_ptr;
 }
@@ -205,14 +205,14 @@ void* shptr_unref(shptr* sh_ptr)
             return NULL;            // or it was initialy 0
 
     } while
-    (
-        !atomic_compare_exchange_weak
-        (
-            &sh_ptr->strong_refcount,
-         &strong_refcount,
-         strong_refcount - 1
-        )
-    );
+      (
+          !atomic_compare_exchange_weak
+          (
+             &sh_ptr->strong_refcount,
+             &strong_refcount,
+             strong_refcount - 1
+          )
+      );
 
     if ( strong_refcount == 1 ) // THIS thread set the value to 0
     {
@@ -237,14 +237,14 @@ void* shptr_unref_weak(shptr* sh_ptr)
             return NULL;
 
     } while
-    (
+     (
         !atomic_compare_exchange_weak
         (
             &sh_ptr->weak_refcount,
-         &weak_refcount,
-         weak_refcount - 1
+            &weak_refcount,
+            weak_refcount - 1
         )
-    );
+     );
 
     // this thread set the value to 0
     // so this thread must free the block
