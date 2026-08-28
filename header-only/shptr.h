@@ -237,14 +237,14 @@ void* shptr_unref_weak(shptr* sh_ptr)
             return NULL;
 
     } while
-     (
-        !atomic_compare_exchange_weak
-        (
-            &sh_ptr->weak_refcount,
-            &weak_refcount,
-            weak_refcount - 1
-        )
-     );
+      (
+         !atomic_compare_exchange_weak
+         (
+             &sh_ptr->weak_refcount,
+             &weak_refcount,
+             weak_refcount - 1
+         )
+      );
 
     // this thread set the value to 0
     // so this thread must free the block
