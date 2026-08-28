@@ -5,9 +5,9 @@
 #include <stdatomic.h>
 #include <stdbool.h>
 
-#define shptr_INIT_DTOR(type, destructor_ptr)                                     \
-                        shptr_init(sizeof(type), _Alignof(type), destructor_ptr)
-#define shptr_INIT_NODTOR(type)                                                   \
+#define shptr_INIT_DTOR(type, destructor_ptr)                                      \
+                        shptr_init(sizeof(type), _Alignof(type), (destructor_ptr))
+#define shptr_INIT_NODTOR(type)                                                    \
                         shptr_init(sizeof(type), _Alignof(type), NULL)
 
 #define INIT_MACRO_SELECTOR(arg1, arg2, arg3, ...) arg3
@@ -15,8 +15,8 @@
         INIT_MACRO_SELECTOR(__VA_ARGS__, shptr_INIT_DTOR, shptr_INIT_NODTOR)      \
         (__VA_ARGS__)
 
-#define shptr_VOID_PTR(sh_ptr)        (sh_ptr ? shptr_ptr(sh_ptr)        : NULL)
-#define shptr_TYPED_PTR(sh_ptr, type) (sh_ptr ? (type*)shptr_ptr(sh_ptr) : NULL)
+#define shptr_VOID_PTR(sh_ptr)        ((sh_ptr) ? shptr_ptr(sh_ptr)        : NULL)
+#define shptr_TYPED_PTR(sh_ptr, type) ((sh_ptr) ? (type*)shptr_ptr(sh_ptr) : NULL)
 
 #define PTR_MACRO_SELECTOR(arg1, arg2, arg3, ...) arg3
 #define shptr_PTR(...)                                                             \
@@ -27,7 +27,7 @@
 
 #define shptr_SET_DTOR(sh_ptr, destructor_ptr)         \
 (                                                      \
-    sh_ptr ?                                           \
+    (sh_ptr) ?                                         \
     (                                                  \
         shptr_set_destructor(sh_ptr, destructor_ptr)   \
     )                                                  \
@@ -36,26 +36,26 @@
 
 #define shptr_DTOR(sh_ptr) (*shptr_destructor_field(sh_ptr))
 
-#define shptr_STRONG_COUNT(sh_ptr) (sh_ptr ? shptr_strong(sh_ptr) : SIZE_MAX)
-#define shptr_WEAK_COUNT(sh_ptr)   (sh_ptr ? shptr_weak(sh_ptr)   : SIZE_MAX)
+#define shptr_STRONG_COUNT(sh_ptr) ((sh_ptr) ? shptr_strong(sh_ptr) : SIZE_MAX)
+#define shptr_WEAK_COUNT(sh_ptr)   ((sh_ptr) ? shptr_weak(sh_ptr)   : SIZE_MAX)
 
-#define shptr_ISNULL(sh_ptr) ( sh_ptr == NULL )
-#define shptr_ISGONE(sh_ptr) ( sh_ptr == NULL || shptr_strong(sh_ptr) == 0 )
+#define shptr_ISNULL(sh_ptr) ( (sh_ptr) == NULL )
+#define shptr_ISGONE(sh_ptr) ( (sh_ptr) == NULL || shptr_strong(sh_ptr) == 0 )
 
-#define shptr_REF(sh_ptr)        ( sh_ptr ? shptr_ref(sh_ptr)        : NULL )
-#define shptr_REF_WEAK(sh_ptr)   ( sh_ptr ? shptr_ref_weak(sh_ptr)   : NULL )
+#define shptr_REF(sh_ptr)        ( (sh_ptr) ? shptr_ref(sh_ptr)        : NULL )
+#define shptr_REF_WEAK(sh_ptr)   ( (sh_ptr) ? shptr_ref_weak(sh_ptr)   : NULL )
 
-#define shptr_UNREF(sh_ptr)      ( sh_ptr ? (sh_ptr = shptr_unref(sh_ptr))      : NULL )
-#define shptr_UNREF_WEAK(sh_ptr) ( sh_ptr ? (sh_ptr = shptr_unref_weak(sh_ptr)) : NULL )
+#define shptr_UNREF(sh_ptr)      ( (sh_ptr) ? (sh_ptr = shptr_unref(sh_ptr))      : NULL )
+#define shptr_UNREF_WEAK(sh_ptr) ( (sh_ptr) ? (sh_ptr = shptr_unref_weak(sh_ptr)) : NULL )
 
 #define IS_REF_ACQUIRED(sh_ptr) (shptr_REF(sh_ptr) && shptr_strong(sh_ptr) > 0)
-#define shptr_REF_TRY(sh_ptr)                    \
-(                                                \
-    sh_ptr ?                                     \
-    (                                            \
-        IS_REF_ACQUIRED(sh_ptr) ? sh_ptr : NULL  \
-    )                                            \
-    : NULL                                       \
+#define shptr_REF_TRY(sh_ptr)                      \
+(                                                  \
+    (sh_ptr) ?                                     \
+    (                                              \
+        IS_REF_ACQUIRED(sh_ptr) ? (sh_ptr) : NULL  \
+    )                                              \
+    : NULL                                         \
 )
 
 typedef void (*dtor_ptr)(void* ptr);
