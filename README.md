@@ -36,7 +36,7 @@ void dtor(void* obj); // the destructor is passed pointer to the object
 
 ### API Contract
 
-0. Always pass a pointer variable directly to a **shptr_** operator, never pass an expression that evaluates to it.
+0. Always pass a **reference** directly (as a pointer variable) to a **shptr_** operator, never pass an expression that evaluates to it.
 1. Always check the first **strong reference** returned by [shptr_INIT](#-shptr_init-), if allocation fails, a `NULL`-reference is returned.
 2. To access and/or modify the object, a caller must own a **strong reference**.
 3. To access the control block, a caller must own a **weak reference**.
